@@ -39,6 +39,17 @@ class LedgerTests(unittest.TestCase):
         self.assertEqual(len(projection(self.store)['receipts']),1)
         self.assertEqual(ReviewStore(self.store.path).get('a'*64)['member_history'][0]['name'],'Alice')
         with self.assertRaises(ReviewConflict):self.store.member('a'*64,'Bob',0)
+    def test_member_assignment_does_not_displace_reviewed_source_version(self):
+        self.store.decide('a'*64,'total','accept',None,0)
+        self.store.register('b'*64,document());self.store.member('b'*64,'Alice',0)
+        data=projection(self.store)
+        self.assertEqual(data['receipts'][0][-1],'a'*64)
+        self.assertEqual(data['receipts'][0][0],'Alice')
+    def test_orphan_staging_file_is_not_used_after_restart(self):
+        old=self.ledger.path.with_suffix('.tmp.xlsx');old.write_bytes(b'orphan-export')
+        self.ledger.flush()
+        self.assertEqual(old.read_bytes(),b'orphan-export')
+        self.assertEqual(self.ledger.path.read_bytes(),b'test-workbook')
     def test_invalid_member_does_not_commit(self):
         for name in ('',' '*2,'x'*81,'bad\x00name',None):
             with self.assertRaises(ValueError):self.store.member('a'*64,name,0)

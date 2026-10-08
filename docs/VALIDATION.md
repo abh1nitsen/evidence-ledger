@@ -74,4 +74,4 @@ These checks exercise the implementation under specified faults; they do not gua
 
 ## v0.8 household ledger
 
-Verified 8 October 2026: **129 automated tests passed**, with 112/112 offline field matches and 16/16 expected decisions. Local regression coverage adds workbook-generation checkpoints, stale-export rejection, retained previous output on failure, ownership and pending/confirmed line data. Runtime tests use an injected renderer; actual artifact-tool XLSX export and rendered sheet inspection were separately verified locally. See [Household Excel](HOUSEHOLD_EXCEL.md).
+Verified 8 October 2026: **131 automated tests passed**, with 112/112 offline field matches and 16/16 expected decisions. Local regression coverage adds workbook-generation checkpoints, stale-export rejection, retained previous output on failure, ownership and pending/confirmed line data. Runtime tests use an injected renderer; actual artifact-tool XLSX export and rendered sheet inspection were separately verified locally. See [Household Excel](HOUSEHOLD_EXCEL.md).

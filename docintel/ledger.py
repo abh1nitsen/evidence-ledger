@@ -89,8 +89,12 @@ class LocalLedger:
             if generation==exported and checksum is not None and checksum==self.checksum():return
             # Errors require an explicit retry, rather than repeatedly hammering a locked file.
             if error:return
-            target=self.path.with_suffix('.tmp.xlsx')
+            # Unique staging prevents a surviving renderer child from overwriting a
+            # restarted export after its parent's OS lock has been released.
+            target=None
             try:
+                with tempfile.NamedTemporaryFile(prefix='purchase-ledger-',suffix='.tmp.xlsx',dir=self.path.parent,delete=False) as stage:
+                    target=Path(stage.name)
                 data=projection(self.store)
                 with self.store.connect() as c:
                     if c.execute('SELECT generation FROM ledger_state WHERE id=1').fetchone()[0]!=generation:return
@@ -108,7 +112,8 @@ class LocalLedger:
             except (OSError,RuntimeError,subprocess.SubprocessError):
                 self.fail('excel_update_failed_check_runtime_and_retry')
             finally:
-                try:target.unlink(missing_ok=True)
+                try:
+                    if target is not None:target.unlink(missing_ok=True)
                 except OSError:pass
     def fail(self,error):
         with self.store.connect() as c:c.execute('UPDATE ledger_state SET error=? WHERE id=1',(error,))

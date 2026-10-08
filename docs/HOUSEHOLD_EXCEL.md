@@ -44,7 +44,7 @@ All workbook inputs come from local saved reviews. Excel rendering sends no rece
 
 ## Recovery
 
-SQLite commits the reading before exporting. Database triggers record a dirty generation after capture, review, grouping or member changes. One worker rebuilds the workbook rather than appending rows. It exports to a temporary file, verifies totals, flushes file content and records its checksum, then atomically replaces the current workbook. A change arriving during export causes that stale export to be discarded. An OS-held writer lock prevents competing exporters using the same workbook.
+SQLite commits the reading before exporting. Database triggers record a dirty generation after capture, review, grouping or member changes. One worker rebuilds the workbook rather than appending rows. It exports to a unique temporary file, verifies totals, flushes file content and records its checksum, then atomically replaces the current workbook. A change arriving during export causes that stale export to be discarded. An OS-held writer lock prevents competing exporters using the same workbook. Unique staging paths isolate a surviving renderer child from a restarted export. Assigning a member does not replace a more thoroughly reviewed extraction version.
 
 After a crash, a restart resumes dirty work. If Excel locks the destination, the previous valid file remains in place and the pending reading stays in SQLite. Close Excel and click **Retry Excel update**. The download control appears only for the current generation. A missing or damaged workbook is detected and rebuilt from the database. Missing runtime/rendering failures use the same retry flow; configure the runtime before retrying. There is no silent conversion of missing values to zero.
 

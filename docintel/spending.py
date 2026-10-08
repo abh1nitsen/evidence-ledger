@@ -24,7 +24,11 @@ def is_demo(document):
 
 def _summarize(documents):
     groups={};excluded=Counter();seen_sources=set();seen_bills={};included=0;receipts=[]
-    documents=sorted(documents,key=lambda d:d.get("review",{}).get("revision",0),reverse=True)
+    def review_progress(d):
+        review=d.get('review',{})
+        member_updates=sum(m['document_id']==review.get('document_id') for m in d.get('member_history',[]))
+        return review.get('revision',0)-member_updates
+    documents=sorted(documents,key=review_progress,reverse=True)
     page_sources={p['source_sha256'] for d in documents for p in d.get('pages',[])}
     for d in documents:
         source=tuple(sorted(p['source_sha256'] for p in d['pages'])) if d.get('pages') else d['source_sha256']
