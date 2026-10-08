@@ -6,7 +6,7 @@ Built by [Abhinit Sen](https://github.com/abh1nitsen). This portfolio project de
 
 An invoice with `Subtotal: 1200.00`, `Tax: 96.00`, and `Total: 1300.00` produces structured fields plus an `arithmetic_mismatch` review reason. An invented vendor with no source quote is discarded. A crashed batch resumes from its SQLite checkpoints.
 
-![Invoice photo upload with live Groq extraction and review](docs/images/photo-prototype.jpg)
+![Invoice photo upload with live Groq extraction and review](docs/images/receipt-reader.png)
 
 ## What is implemented
 
@@ -34,7 +34,7 @@ python -m docintel run
 python -m docintel serve
 ```
 
-Open **http://127.0.0.1:8765**. Load a complete invoice, extract it, and select **Locate**. Then load the arithmetic-mismatch example and inspect the review reason. The UI always uses the offline baseline; CLI batches can use either provider.
+Open **http://127.0.0.1:8765**. Expand **Try an offline text example**, use the complete invoice and click **Read text**. Open its supporting text and choose **Locate in reading**. Then try the arithmetic-mismatch example. Text examples run offline; photo uploads use Groq when configured.
 
 Windows: use `py -3.12` in place of `python` if needed. macOS/Linux: use `python3` when `python` is unavailable. Run from the repository root so default dataset paths resolve.
 
@@ -65,7 +65,7 @@ $env:GROQ_API_KEY = (Get-Content -Raw 'PATH_TO_YOUR_GROQ_KEY_FILE').Trim()
 
 Bash: activate a virtual environment, run `python -m pip install -e '.[vision]'`, export `GROQ_API_KEY`, then run the same `serve` command with `python`. The key stays on the server and is never sent to the browser. Model availability can change; use a vision-capable model listed in your account and [Groq's vision documentation](https://console.groq.com/docs/vision).
 
-Open http://127.0.0.1:8765, choose **Upload invoice image**, inspect the local preview, then click **Extract photo with Groq**. Only that click sends a metadata-stripped normalized copy to Groq. Results show the model transcription, fields, source quotes, quality issues and a persisted checkpoint. Uploading identical bytes again reuses a completed result. Every image result requires human review against the original; quotes/spans refer to the model transcription, **not verified pixel locations**.
+Open http://127.0.0.1:8765, choose **Upload invoice image**, inspect the local preview, then click **Read receipt**. Only that click sends a metadata-stripped normalized copy to Groq. Results show the model transcription, fields, source quotes, quality issues and a persisted checkpoint. Uploading identical bytes again reuses a completed result. Every image result requires human review against the original; quotes/spans refer to the model transcription, **not verified pixel locations**.
 
 Camera advice: include the whole page, keep the phone approximately parallel to the invoice, focus on the print, use diffuse natural light, and avoid glare/strong shadows. Natural light is supported as an input condition, **not a guarantee for every photo or invoice**. Unreadable or ambiguous fields abstain. Unsupported dates/amounts/layouts can still require manual entry.
 
@@ -128,3 +128,7 @@ This small dataset intentionally exercises supported and unsupported behavior. I
 | [SECURITY.md](SECURITY.md) | Credential, document, provider and local UI boundaries |
 
 MIT licensed. Read [CONTRIBUTING.md](CONTRIBUTING.md) to extend providers or document types.
+
+## Using the receipt reader
+
+Choose a photo, click **Read receipt**, then compare the merchant, date, total and seven detailed fields with your original. **Enlarge photo** opens a larger view; **Show supporting text** reveals evidence, and **Locate in reading** highlights matching transcription characters. **Not confirmed** is an abstention, not a zero. Rejected model suggestions remain separate from usable values. A successful reading still needs human confirmation; the yellow notice is not an API failure. Currency is independent of amounts: `$14.09` can become `14.09` while the currency stays unknown. Download JSON when ready. Text examples and the sample batch ledger are secondary views. See [the UI walkthrough](docs/UI_GUIDE.md).

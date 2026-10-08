@@ -5,14 +5,14 @@ import hashlib
 import json
 import re
 
-VERSION = "invoice-v1.1"
+VERSION = "invoice-v1.2"
 FIELDS = ("invoice_id", "vendor", "invoice_date", "currency", "subtotal", "tax", "total")
 LABELS = {
-    "invoice_id": r"Invoice (?:ID|Number|No\.?)",
+    "invoice_id": r"(?:Invoice (?:ID|Number|No\.?)|(?:Tax )?invoice/Receipt No\.?)",
     "vendor": r"(?:Vendor|Supplier)",
     "invoice_date": r"(?:Invoice Date|Date)",
     "currency": r"Currency",
-    "subtotal": r"Subtotal", "tax": r"Tax", "total": r"(?:Grand Total|Total)",
+    "subtotal": r"Subtotal", "tax": r"Tax", "total": r"(?:Grand Total|Total Sale|Total)",
 }
 AMOUNTS = {"subtotal", "tax", "total"}
 SCHEMA = {
@@ -35,8 +35,8 @@ def canonical(field, value):
         raise ValueError("empty value")
     value = value.strip()
     if field in AMOUNTS:
-        # Deliberately restricted: European separators, exponents, symbols and negatives
-        # require review rather than speculative normalization.
+        # Currency markers do not identify currency; that is validated separately.
+        value = re.sub(r"^(?:USD|SGD|EUR|GBP|INR|CAD|AUD|JPY|S\$|US\$|[$£€₹])\s*", "", value, flags=re.I)
         if not re.fullmatch(r"(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d{1,2})?", value):
             raise ValueError("unsupported amount format")
         amount = decimal.Decimal(value.replace(",", ""))
@@ -44,11 +44,18 @@ def canonical(field, value):
             raise ValueError("amount outside prototype limit")
         return format(amount.quantize(decimal.Decimal("0.01")), ".2f")
     if field == "invoice_date":
-        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
-            raise ValueError("date must be ISO YYYY-MM-DD")
-        return dt.date.fromisoformat(value).isoformat()
+        if re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+            return dt.date.fromisoformat(value).isoformat()
+        match = re.fullmatch(r"(\d{1,2})[/-](\d{1,2})[/-](\d{4})(?:\s+\d{1,2}:\d{2}(?::\d{2})?\s*(?:AM|PM)?)?", value, re.I)
+        if match:
+            first, second, year = map(int, match.groups())
+            if first > 12 and second <= 12:
+                return dt.date(year, second, first).isoformat()
+            if second > 12 and first <= 12:
+                return dt.date(year, first, second).isoformat()
+        raise ValueError("ambiguous_or_unsupported_date")
     if field == "currency":
-        if value.upper() not in {"USD", "EUR", "GBP", "INR", "CAD", "AUD", "JPY"}:
+        if value.upper() not in {"USD", "SGD", "EUR", "GBP", "INR", "CAD", "AUD", "JPY"}:
             raise ValueError("unsupported currency")
         return value.upper()
     if len(value) > 200:
@@ -78,7 +85,7 @@ def validate(text, proposed):
         if any(x is not None and not isinstance(x, str) for x in (value, quote)):
             raise ValueError("provider values must be strings or null")
         reason = None
-        normalized, span = None, None
+        normalized, span, spans = None, None, []
         if value is None:
             reason = "missing_or_ambiguous"
         else:
@@ -95,15 +102,20 @@ def validate(text, proposed):
                 if not labelled:
                     issues.append({"field": field, "code": "semantic_binding_needs_review"})
                 locations = list(re.finditer(r"(?<![\w.,-])" + re.escape(quote) + r"(?![\w.,-])", text))
+                if not locations:
+                    raise ValueError("evidence_not_in_source")
+                spans = [{"start": loc.start(), "end": loc.end()} for loc in locations[:32]]
                 if len(locations) != 1:
-                    raise ValueError("ambiguous_evidence_location")
-                start = locations[0].start()
-                span = {"start": start, "end": start + len(quote)}
+                    issues.append({"field": field, "code": "ambiguous_evidence_location"})
+                else:
+                    span = spans[0]
             except ValueError as exc:
                 reason = str(exc)
-                normalized, span = None, None
-        fields[field] = {"value": normalized, "quote": quote if span else None,
-                         "span": span, "valid": reason is None}
+                normalized, span, spans = None, None, []
+        fields[field] = {"value": normalized, "quote": quote if spans else None,
+                         "span": span, "spans": spans, "valid": reason is None,
+                         "candidate": value if reason else None,
+                         "candidate_quote": quote if reason else None}
         if reason:
             issues.append({"field": field, "code": reason})
     if all(fields[x]["valid"] for x in AMOUNTS):

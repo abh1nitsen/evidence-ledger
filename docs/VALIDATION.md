@@ -1,5 +1,12 @@
 # Validation record
 
+## Version 0.3 receipt usability
+
+Verified 8 October 2026: **59 automated tests passed**. Added coverage for currency-prefixed receipt amounts, unambiguous numeric dates, repeated evidence with retained values, and separation of rejected suggestions. Offline evaluation remains 112/112 field matches and 16/16 expected decisions. A fresh live Groq run of all four synthetic image fixtures matched 28/28 fields and 4/4 review decisions with zero extraction failures. The published smoke reports now correspond to schema `invoice-v1.2`.
+
+Browser checks covered the explicit choose/read/check workflow, request progress, enlarged photo, repeated total evidence highlighting, JSON attachment download and saved-result reuse. One privately supplied natural-light retail receipt yielded five accepted fields; the currency abstained and the pre-tax suggestion was rejected because it was missing from the model transcription. The model also flagged multiple documents despite the single receipt: quality diagnostics are model suggestions requiring human inspection. This single case is qualitative debugging, not an accuracy benchmark. Its photo, transcript, identifiers and screenshots are excluded from the repository. The public UI screenshot uses an authored synthetic fixture.
+
+
 ## Version 0.2 image extension
 
 Verified on 8 October 2026 with Python 3.12.10 and Pillow 12.3.0. The full suite now includes **56 automated tests**, covering image limits/format, EXIF orientation/metadata removal, mandatory image review, output schema, upload checkpoint reuse, provider failure handling, HTTP JSON attachments and bounded Retry-After delays alongside the original recovery tests.

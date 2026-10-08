@@ -1,7 +1,7 @@
 {
   "provider": "groq",
   "model": "qwen/qwen3.8-27b",
-  "provider_identity": "109b8d435271a91db22b47043e2ef0c4d53c70d9b9971029c62c6253fdd9b2f0",
+  "provider_identity": "d45b7f0f02af472c95094fb09138644e78efe4706192eff7b3cb5e6c18e12f85",
   "dataset": "synthetic-image-smoke-v1",
   "documents": 4,
   "field_exact_match": 1.0,

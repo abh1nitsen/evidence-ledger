@@ -18,7 +18,7 @@ Retries may incur additional remote cost. Authentication and malformed/refused r
 
 The file gets `failed / invalid_input`, and other documents continue. Fix the file, then rerun. Input failures are not cached. Groq mode supports JPEG/PNG/WebP directly when the vision extra is installed. PDFs/HEIC/TIFF require a separate conversion stage; changing an extension is insufficient.
 
-For Groq `provider_http_429`, wait for the quota window to recover, then retry failed jobs. Requests already use bounded Retry-After delays. Image upload retries failed jobs when the user clicks Extract again. Cached successful image results are reused.
+For Groq `provider_http_429`, wait for the quota window to recover, then retry failed jobs. Requests already use bounded Retry-After delays. Image upload retries failed jobs when the user clicks Read receipt again. Cached successful image results are reused.
 
 ## Export failure or missing report
 

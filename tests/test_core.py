@@ -57,7 +57,7 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(result["decision"], "review")
 
     def test_unsupported_formats_rejected(self):
-        for value in ("NaN", "1e3", "-1", "1.200,00", "$10", "1000000001"):
+        for value in ("NaN", "1e3", "-1", "1.200,00", "1000000001"):
             with self.assertRaises(ValueError):
                 canonical("total", value)
 
@@ -82,3 +82,27 @@ class CoreTests(unittest.TestCase):
         result = validate(text, proposed)
         self.assertEqual(result["fields"]["vendor"]["value"], "Acme Ltd")
         self.assertEqual(result["decision"], "review")
+
+    def test_receipt_amounts_and_unambiguous_date(self):
+        self.assertEqual(canonical("total", "$14.09"), "14.09")
+        self.assertEqual(canonical("invoice_date", "18/9/2026 6:36 PM"), "2026-09-18")
+        self.assertEqual(canonical("currency", "sgd"), "SGD")
+        with self.assertRaises(ValueError):
+            canonical("currency", "$")
+        with self.assertRaises(ValueError):
+            canonical("invoice_date", "01/10/2026")
+
+    def test_repeated_amount_keeps_value_and_requires_review(self):
+        text = TEXT + "Paid: 110.00\n"
+        result = validate(text, baseline(TEXT))
+        self.assertEqual(result["fields"]["total"]["value"], "110.00")
+        self.assertEqual(len(result["fields"]["total"]["spans"]), 2)
+        self.assertIsNone(result["fields"]["total"]["span"])
+        self.assertEqual(result["decision"], "review")
+
+    def test_rejected_suggestion_is_kept_separate_from_value(self):
+        proposed = baseline(TEXT)
+        proposed["currency"] = {"value": "$", "quote": "$"}
+        result = validate(TEXT, proposed)
+        self.assertIsNone(result["fields"]["currency"]["value"])
+        self.assertEqual(result["fields"]["currency"]["candidate"], "$")

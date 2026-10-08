@@ -1,6 +1,6 @@
 # Model and system card
 
-**System:** Evidence Ledger v0.2.0. **Domain:** invoice intake. **Owner:** Abhinit Sen. **Task:** seven-field structured extraction from text/photos with evidence and review routing.
+**System:** Evidence Ledger v0.3.0. **Domain:** invoice intake. **Owner:** Abhinit Sen. **Task:** seven-field structured extraction from text/photos with evidence and review routing.
 
 ## Methods
 
