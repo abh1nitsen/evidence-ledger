@@ -53,3 +53,7 @@ Each photo has its own checkpoint; a failed later photo does not erase earlier p
 Do not auto-delete flagged overlaps: repeated purchases may be valid. Reject only confirmed duplicates. Item mismatches, unresolved discounts or a rejected discount target block item allocations. For prices already discounted, exclude a duplicate discount allocation or correct the purchase to the printed gross amount; compare the photo before deciding. A payment slip without a printed final total stays outside spending. See [item and chain rules](ITEMS_AND_PAGES.md).
 
 Groq HTTP 429 is checkpointed with a sanitized error code. The UI retries failed uploads explicitly; batch retries require `--retry-failed`. A daily allowance may need much longer than the bounded Retry-After cap. New credentials are supplied through `GROQ_API_KEY`; keys are never part of cache identity, so successful source/configuration checkpoints remain reusable. No automatic credential rotation is implemented.
+
+## Household workbook update fails
+
+Close `purchase-ledger.xlsx` in Excel, then retry in Spending. If it still fails, check `LEDGER_NODE` and `LEDGER_ARTIFACT_MODULES`. Saved receipts remain in the review database. `python -m docintel ledger --reviews runs/uploads-reviews.sqlite` rebuilds without re-running extraction. See [Household Excel](HOUSEHOLD_EXCEL.md).

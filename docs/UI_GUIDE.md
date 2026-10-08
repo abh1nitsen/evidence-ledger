@@ -35,3 +35,7 @@ Read one photo first. Click **Add next page**, choose its photo and click **Read
 Open **Spending** to see confirmed totals and categories, followed by **Your receipts**. Use **To review**, **Included** or **All**. A receipt amount shown in the list is not necessarily included: its status and next-step message explain what is missing. **Finish review** opens the receipt at that step; saved corrections update the overview automatically. Practice data is collapsed under **Demo examples** and never affects your totals. Earlier versions and individual chain pages do not inflate the receipt count. Your original extractions and review history remain saved.
 
 ![Spending overview using independently authored UI fixtures](images/spending-intuitive.jpg)
+
+## Household Excel
+
+Choose a household member before reading a photo. Change the saved buyer using **Bought by â†’ Save member**. Open **Spending â†’ Download household Excel** after its status says up to date. Close an open Excel workbook before retrying a failed update. [Data rules, setup and recovery](HOUSEHOLD_EXCEL.md).

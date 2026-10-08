@@ -71,3 +71,7 @@ OpenAI transport was mocked to verify the documented Responses request schema, t
 The CI workflow independently runs tests, offline evaluation and resume commands on Ubuntu/Windows with Python 3.11/3.12. Its GitHub status is separate from this local record. Clean-clone and CI outcomes are verified after publication and reported in the delivery message.
 
 These checks exercise the implementation under specified faults; they do not guarantee survival of all hardware/filesystem failures, complete injection resistance, authentic invoices, or correctness across real supplier layouts.
+
+## v0.8 household ledger
+
+Verified 8 October 2026: **129 automated tests passed**, with 112/112 offline field matches and 16/16 expected decisions. Local regression coverage adds workbook-generation checkpoints, stale-export rejection, retained previous output on failure, ownership and pending/confirmed line data. Runtime tests use an injected renderer; actual artifact-tool XLSX export and rendered sheet inspection were separately verified locally. See [Household Excel](HOUSEHOLD_EXCEL.md).

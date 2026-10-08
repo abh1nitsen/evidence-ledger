@@ -10,7 +10,7 @@ import secrets
 import tempfile
 from collections import OrderedDict
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import urlparse, unquote
 
 from .core import VERSION, baseline, validate, digest
 from .documents import attach_document
@@ -20,6 +20,7 @@ from .items import CATEGORIES as ITEM_CATEGORIES, KINDS
 from .pipeline import run
 from .providers import Groq, ProviderError
 from .vision import MAX_IMAGE_BYTES
+from .ledger import LocalLedger
 
 
 def handler(report, image_provider=None, image_db=None, review_threshold=0.85):
@@ -28,6 +29,7 @@ def handler(report, image_provider=None, image_db=None, review_threshold=0.85):
     image_db = image_db or report.parent / "uploads.sqlite"
     downloads = OrderedDict()
     reviews = ReviewStore(image_db.parent / (image_db.stem + "-reviews.sqlite"))
+    ledger=LocalLedger(reviews)
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *_):
             pass  # Do not log pasted documents or request paths.
@@ -47,6 +49,9 @@ def handler(report, image_provider=None, image_db=None, review_threshold=0.85):
             if identity:
                 checkpoint=result.get("checkpoint")
                 result=reviews.register(identity,result)
+                member=unquote(self.headers.get('X-Receipt-Member','')).strip()
+                if member and result['member']=='Unassigned':
+                    result=reviews.member(identity,member,result['review']['revision'])
                 if checkpoint: result["checkpoint"]=checkpoint
             if "score_policy" in result:
                 result["score_policy"]["threshold"]=review_threshold
@@ -77,6 +82,19 @@ def handler(report, image_provider=None, image_db=None, review_threshold=0.85):
                     self.send(200,json.dumps(reviews.spending_summary()))
                 except (OSError,sqlite3.Error):
                     self.send(503,'{"error":"review_storage_unavailable"}')
+            elif path == '/api/ledger':
+                self.send(200,json.dumps(ledger.status()))
+            elif path == '/api/ledger/download':
+                with ledger.lock:
+                    if ledger.status()['state']!='ready':
+                        self.send(409,'{"error":"workbook_update_pending"}')
+                    else:
+                        self.send_response(200)
+                        self.send_header('Content-Type','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                        self.send_header('Content-Disposition','attachment; filename="purchase-ledger.xlsx"')
+                        self.send_header('Cache-Control','no-store')
+                        self.send_header('X-Content-Type-Options','nosniff')
+                        self.end_headers();self.wfile.write(ledger.path.read_bytes())
             elif path == "/api/config":
                 self.send(200, json.dumps({"item_categories":ITEM_CATEGORIES,"item_kinds":KINDS,"categories":CATEGORIES,"image_enabled": image_provider is not None,
                     "image_provider": image_provider.name if image_provider else None, "model": image_provider.model if image_provider else None,
@@ -100,6 +118,13 @@ def handler(report, image_provider=None, image_db=None, review_threshold=0.85):
             if self.headers.get("Origin") not in expected:
                 self.send(403, '{"error":"origin_rejected"}')
                 return
+            member=unquote(self.headers.get('X-Receipt-Member',''))
+            if len(member)>80 or any(ord(ch)<32 for ch in member):
+                self.send(400,'{"error":"invalid_member"}');return
+            if self.path=='/api/ledger/retry':
+                if self.headers.get('Content-Type')!='application/json':
+                    self.send(400,'{"error":"invalid_request"}');return
+                ledger.retry();self.send(200,json.dumps(ledger.status()));return
             if self.path == "/api/pages":
                 try:
                     if self.headers.get('Content-Type')!='application/json':raise ValueError()
@@ -111,16 +136,18 @@ def handler(report, image_provider=None, image_db=None, review_threshold=0.85):
                 except (ValueError,KeyError,TypeError):self.send(400,'{"error":"invalid_page_chain"}')
                 except (OSError,sqlite3.Error):self.send(503,'{"error":"review_storage_unavailable"}')
                 return
-            if self.path in {"/api/review","/api/group","/api/item-review"}:
+            if self.path in {"/api/review","/api/group","/api/item-review","/api/member"}:
                 try:
                     if self.headers.get("Content-Type")!="application/json": raise ValueError()
                     length=int(self.headers.get("Content-Length","0"))
                     if not 0<length<=8192: raise ValueError()
                     data=json.loads(self.rfile.read(length))
-                    required={"document_id","item_id","action","values","revision"} if self.path=="/api/item-review" else {"document_id","category","tags","revision"} if self.path=="/api/group" else {"document_id","field","action","value","revision"}
+                    required={"document_id","name","revision"} if self.path=='/api/member' else {"document_id","item_id","action","values","revision"} if self.path=="/api/item-review" else {"document_id","category","tags","revision"} if self.path=="/api/group" else {"document_id","field","action","value","revision"}
                     if set(data)!=required: raise ValueError()
                     if not isinstance(data["document_id"],str) or not re.fullmatch(r"[a-f0-9]{64}",data["document_id"]): raise ValueError()
-                    if self.path=="/api/item-review":
+                    if self.path=='/api/member':
+                        result=reviews.member(data['document_id'],data['name'],data['revision'])
+                    elif self.path=="/api/item-review":
                         result=reviews.decide_item(data["document_id"],data["item_id"],data["action"],data["values"],data["revision"])
                     else:
                         result=reviews.group(data["document_id"],data["category"],data["tags"],data["revision"]) if self.path=="/api/group" else reviews.decide(data["document_id"],data["field"],data["action"],data["value"],data["revision"])
@@ -184,6 +211,7 @@ def handler(report, image_provider=None, image_db=None, review_threshold=0.85):
                 self.send_result(result,digest(result["source_sha256"]+VERSION+":ui-text"))
             except (ValueError, KeyError, TypeError):
                 self.send(400, '{"error":"invalid_document"}')
+    Handler.ledger=ledger
     return Handler
 
 
@@ -192,9 +220,13 @@ def serve(port, report, vision_model="qwen/qwen3.8-27b", image_db=None, ocr="non
     image_provider = Groq(vision_model) if os.environ.get("GROQ_API_KEY") and importlib.util.find_spec("PIL") else None
     if image_provider and ocr=="paddle":
         image_provider=Hybrid(image_provider)
-    with ThreadingHTTPServer(("127.0.0.1", port), handler(report, image_provider, image_db,review_threshold)) as server:
+    app=handler(report, image_provider, image_db,review_threshold)
+    with ThreadingHTTPServer(("127.0.0.1", port), app) as server:
+        app.ledger.start()
         print(f"Evidence Ledger: http://127.0.0.1:{port} (Ctrl+C to stop)", flush=True)
         try:
             server.serve_forever()
         except KeyboardInterrupt:
             pass
+        finally:
+            app.ledger.stop.set()

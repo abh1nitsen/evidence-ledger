@@ -17,6 +17,7 @@ An invoice with `Subtotal: 1200.00`, `Tax: 96.00`, and `Total: 1300.00` produces
 - Visible suggestions with uncalibrated evidence scores and durable Accept / Reject / Edit decisions; source, label and format conflicts remain explicit.
 - Transactional per-document checkpoints, process locking, content/configuration-aware caching, atomic JSON exports, and bounded network retries.
 - A local review UI with source highlighting, example invoices, JSON download, and separate receipt/spending views.
+- Household buyer names and an automatically rebuilt local Excel ledger with receipt/item sheets, review status and safe retry. Excel export requires a separately available Node/artifact-tool runtime. See [Household Excel](docs/HOUSEHOLD_EXCEL.md).
 - Authored synthetic data, regression tests, evaluation reports, and Windows/Linux CI.
 
 **Prototype boundary:** input is UTF-8 `.txt` or JPEG/PNG/WebP invoice images (up to ten ordered photos per receipt). Groq vision transcribes photographed/scanned invoices and extracts fields. PDF parsing, HEIC/TIFF, ERP integration, and payment execution are not implemented. The offline baseline is deterministic rules, not a trained AI model. There is no hidden AI fallback.

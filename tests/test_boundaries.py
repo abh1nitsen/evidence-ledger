@@ -40,6 +40,28 @@ class BoundaryTests(unittest.TestCase):
 
 
 class HTTPTests(unittest.TestCase):
+    def test_member_capture_header_and_reupload_preserves_owner(self):
+        from urllib.parse import quote
+        def capture(name):
+            request=urllib.request.Request(self.base+'/api/extract',data=json.dumps({'text':TEXT}).encode(),headers={'Content-Type':'application/json','Origin':self.base,'X-Receipt-Member':quote(name)})
+            with urllib.request.urlopen(request,timeout=3) as response:return json.load(response)
+        first=capture('Anjali सेन');second=capture('Bob')
+        self.assertEqual(first['member'],'Anjali सेन');self.assertEqual(second['member'],first['member'])
+        self.assertEqual(first['review']['document_id'],second['review']['document_id'])
+        self.assertEqual(first['review']['revision'],second['review']['revision'])
+
+    def test_excel_download_is_blocked_until_current_generation_ready(self):
+        with urllib.request.urlopen(self.base+'/api/ledger',timeout=3) as response:
+            self.assertEqual(json.load(response)['state'],'updating')
+        with self.assertRaises(urllib.error.HTTPError) as error:
+            urllib.request.urlopen(self.base+'/api/ledger/download',timeout=3)
+        self.assertEqual(error.exception.code,409)
+        local=self.server.RequestHandlerClass.ledger
+        local.renderer=lambda data,path:path.write_bytes(b'test-export')
+        local.flush()
+        with urllib.request.urlopen(self.base+'/api/ledger/download',timeout=3) as response:
+            self.assertIn('spreadsheetml',response.headers['Content-Type'])
+            self.assertEqual(response.read(),b'test-export')
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.report = Path(self.temp.name) / "report.json"

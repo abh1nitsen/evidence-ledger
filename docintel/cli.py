@@ -33,8 +33,16 @@ def main(argv=None):
     serve.add_argument("--review-threshold",type=float,default=0.85)
     serve.add_argument("--ocr",choices=["none","paddle"],default="none")
     serve.add_argument("--image-db", default="runs/uploads.sqlite")
+    ledger=sub.add_parser('ledger',help='Rebuild the local household Excel from saved reviews')
+    ledger.add_argument('--reviews',default='runs/uploads-reviews.sqlite')
     args = parser.parse_args(argv)
     try:
+        if args.command=='ledger':
+            from .reviews import ReviewStore
+            from .ledger import LocalLedger
+            local=LocalLedger(ReviewStore(args.reviews));local.retry();local.flush()
+            print(json.dumps(local.status()))
+            return 0 if local.status()['state']=='ready' else 1
         if args.command == "serve":
             from .server import serve as start
             start(args.port, Path(args.report), args.vision_model, Path(args.image_db),args.ocr,args.review_threshold)

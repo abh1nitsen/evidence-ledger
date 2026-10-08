@@ -64,3 +64,7 @@ The image provider proposes line items in addition to headers. Start the server 
 Developer reports remain CLI/API outputs. The main screen offers receipt review and spending rather than a developer batch panel. Historical committed image benchmarks predate the v3 item envelope; they are not current item-accuracy benchmarks. Current deterministic item/page coverage is in `tests/test_items.py`, `tests/test_pages.py` and HTTP boundary tests. The validation record separates automated checks, authored fixture UI checks and private live diagnostics.
 
 Version 0.7 spending tests run with the same unittest command and no API key. Known practice inputs are segregated from personal spending, and the API now supplies per-receipt statuses and review targets in addition to diagnostic groups/exclusion counts. The extraction configuration and completed image checkpoints remain reusable.
+
+## Excel runtime
+
+Excel export requires Node plus a separately available `@oai/artifact-tool` runtime. A Git clone and pip installation do not supply it. See [Household Excel](HOUSEHOLD_EXCEL.md) for explicit configuration and rebuild commands. Without that runtime, capture/review remains usable and Excel shows a retry state.

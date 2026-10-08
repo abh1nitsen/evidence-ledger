@@ -23,6 +23,8 @@ class ReviewStore:
             c.execute("CREATE TABLE IF NOT EXISTS decisions (id INTEGER PRIMARY KEY AUTOINCREMENT, document_id TEXT NOT NULL, field TEXT NOT NULL, action TEXT NOT NULL, value TEXT, timestamp REAL NOT NULL, revision INTEGER NOT NULL)")
             c.execute("CREATE TABLE IF NOT EXISTS spending_groups (id INTEGER PRIMARY KEY AUTOINCREMENT, document_id TEXT NOT NULL, category TEXT NOT NULL, tags TEXT NOT NULL, timestamp REAL NOT NULL, revision INTEGER NOT NULL)")
             c.execute("CREATE TABLE IF NOT EXISTS item_decisions (id INTEGER PRIMARY KEY AUTOINCREMENT, document_id TEXT NOT NULL, item_id TEXT NOT NULL, action TEXT NOT NULL, value TEXT, timestamp REAL NOT NULL, revision INTEGER NOT NULL)")
+            c.execute("CREATE TABLE IF NOT EXISTS household_members (source TEXT PRIMARY KEY, name TEXT NOT NULL)")
+            c.execute("CREATE TABLE IF NOT EXISTS member_history (id INTEGER PRIMARY KEY AUTOINCREMENT, source TEXT, name TEXT, timestamp REAL, document_id TEXT, revision INTEGER)")
     @contextlib.contextmanager
     def connect(self):
         with contextlib.closing(sqlite3.connect(self.path,timeout=5)) as c:
@@ -46,6 +48,11 @@ class ReviewStore:
             groups=c.execute("SELECT category,tags,timestamp,revision FROM spending_groups WHERE document_id=? ORDER BY revision",(identity,)).fetchall()
             item_history=c.execute("SELECT item_id,action,value,timestamp,revision FROM item_decisions WHERE document_id=? ORDER BY revision",(identity,)).fetchall()
         result=json.loads(row[0]); result["review"]={"document_id":identity,"revision":row[1],"history":[]}
+        with self.connect() as c:
+            member=c.execute('SELECT name FROM household_members WHERE source=?',(self.member_key(result),)).fetchone()
+            member_history=c.execute('SELECT name,timestamp,document_id,revision FROM member_history WHERE source=? ORDER BY id',(self.member_key(result),)).fetchall()
+        result['member']=member[0] if member else 'Unassigned'
+        result['member_history']=[dict(zip(('name','timestamp','document_id','revision'),m)) for m in member_history]
         for field,action,value,stamp,revision in history:
             result["fields"][field]["human_review"]={"action":action,"value":value,"revision":revision}
             result["review"]["history"].append({"field":field,"action":action,"value":value,"timestamp":stamp,"revision":revision})
@@ -73,6 +80,23 @@ class ReviewStore:
         if history:
             result["decision"]="review"
         return result
+    @staticmethod
+    def member_key(result):
+        return '|'.join(sorted(p['source_sha256'] for p in result['pages'])) if result.get('pages') else result['source_sha256']
+
+    def member(self,identity,name,revision):
+        if not isinstance(name,str) or not name.strip() or len(name.strip())>80 or any(ord(ch)<32 for ch in name):
+            raise ValueError('invalid member name')
+        if not isinstance(revision,int) or isinstance(revision,bool): raise ValueError('invalid revision')
+        with self.connect() as c:
+            c.execute('BEGIN IMMEDIATE')
+            row=c.execute('SELECT original,revision FROM documents WHERE id=?',(identity,)).fetchone()
+            if not row:raise KeyError('unknown document')
+            if row[1]!=revision:raise ReviewConflict('stale review revision')
+            c.execute('INSERT OR REPLACE INTO household_members VALUES (?,?)',(self.member_key(json.loads(row[0])),name.strip()))
+            c.execute('INSERT INTO member_history (source,name,timestamp,document_id,revision) VALUES (?,?,?,?,?)',(self.member_key(json.loads(row[0])),name.strip(),time.time(),identity,revision+1))
+            c.execute('UPDATE documents SET revision=revision+1 WHERE id=?',(identity,))
+        return self.get(identity)
     def recent(self):
         with self.connect() as c:
             rows=c.execute("SELECT id,original,revision FROM documents ORDER BY rowid DESC LIMIT 100").fetchall()
@@ -150,5 +174,10 @@ class ReviewStore:
     def chain(self,identities):
         from .pages import combine
         if not isinstance(identities,list) or any(not isinstance(i,str) or not re.fullmatch(r'[a-f0-9]{64}',i) for i in identities):raise ValueError('invalid page identities')
-        identity,result=combine([self.get(i) for i in identities],identities)
-        return self.register(identity,result)
+        pages=[self.get(i) for i in identities]
+        identity,result=combine(pages,identities)
+        saved=self.register(identity,result)
+        members={p['member'] for p in pages}
+        if saved['member']=='Unassigned' and len(members)==1 and 'Unassigned' not in members:
+            saved=self.member(identity,members.pop(),saved['review']['revision'])
+        return saved
