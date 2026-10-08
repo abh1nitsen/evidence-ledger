@@ -26,7 +26,7 @@ The server is single-worker and loopback-only, with bounded body size, a read ti
 
 JSON downloads use HTTP attachment responses addressed by opaque temporary tokens. The server retains at most 16 recent exports in memory; links expire after eviction or restart. Re-extract/re-upload to obtain a fresh link while reusing a completed checkpoint.
 
-Provider requests have a 45-second timeout, two retries after the initial attempt, and a 2,500-token output cap. Rate-limit delay is numeric Retry-After, bounded to 1–60 seconds, with a 20-second fallback. Other transient errors use short exponential delays. Long invoices can exceed output budget and fail rather than returning partial fields. Remote retries/crashes can repeat paid requests; there is no exactly-once billing guarantee.
+Provider requests have a 90-second timeout, two retries after the initial attempt, and a 4,000-token image output cap. Rate-limit delay is numeric Retry-After, bounded to 1–60 seconds, with a 20-second fallback. Other transient errors use short exponential delays. Long invoices can exceed output budget and fail rather than returning partial fields. Remote retries/crashes can repeat paid requests; there is no exactly-once billing guarantee.
 
 Before sending confidential images, review [Groq's data policies](https://console.groq.com/docs/your-data). Metadata stripping does not anonymize text printed in the invoice. Keep private images, databases and exports outside public commits.
 
@@ -44,3 +44,5 @@ Set `GROQ_API_KEY` before the last command. Image evaluation checkpoints are reu
 `data/images` contains an authored invoice render, simulated shadow, simulated angle, and blank image. These are synthetic software-generated images, **not natural-light camera photographs**. The committed live smoke report measures those fixtures only. A larger independent set of real consented camera photos is still needed before claiming accuracy for arbitrary invoices in natural light.
 
 Version 0.4 optionally adds independent local PaddleOCR with `--ocr paddle`. Grounding then uses the OCR transcript and bounding rectangles, not Groq self-transcription. The UI shows candidates even when machine validation abstains and supports saved Accept/Reject/Edit. Date, time and amount roles are separate; a payment slip can legitimately lack tax and final total. Explicit `S$` is a supported currency marker. Two-digit-year dates remain proposals until confirmed. See [OCR_AND_REVIEW.md](OCR_AND_REVIEW.md).
+
+Qwen requests explicitly use `reasoning_effort: none` to reserve completion output for structured extraction. This does not eliminate account rate limits or guarantee a complete long receipt. See [Groq Qwen documentation](https://console.groq.com/docs/model/qwen/qwen3.8-27b) and [reasoning controls](https://console.groq.com/docs/reasoning).

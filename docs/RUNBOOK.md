@@ -34,7 +34,7 @@ Different provider/model/prompt/schema identities create new jobs automatically.
 
 ## Manual review
 
-`review` is a durable output decision. Inspect issues and source spans, compare against the original invoice, and resolve outside this prototype. The app does not persist human edits or approvals and has no payment integration. Use the JSON download as an extraction record, not as an authorization record.
+`review` is a durable output decision. Inspect issues and source spans, compare against the original invoice, and save Accept/Reject/Edit decisions in the local review UI. The app persists human corrections separately from immutable machine proposals and has no payment integration. Use the JSON download as an extraction record, not as an authorization record.
 
 ## Reset and backups
 
@@ -45,3 +45,11 @@ For a fresh experiment, select a new database path instead of deleting working s
 Use `--ocr paddle` only after installing the optional OCR extra. Initial recognition downloads official model weights into `runs/ocr`; failures are explicit. For `ocr_timeout`, retry after checking CPU load; the worker deadline is 180 seconds. For `ocr_process_failed`, check the pinned runtime/model installation; choose Groq-only mode explicitly with no OCR flag if needed. OCR caches are keyed by content/configuration and verified against weight hashes.
 
 Preserve both the image checkpoint database and its sibling `<stem>-reviews.sqlite` when keeping human review history. Re-upload identical bytes or select **Resume a saved reading** after restart. Re-extraction under a changed schema/provider configuration creates a distinct review identity. HTTP 409 means another decision changed the revision; reload and retry rather than overwriting it. Machine evidence and original suggestions are immutable; corrections live in the decision history. Exports flag effective arithmetic mismatches.
+
+## Long receipts and item review
+
+Each photo has its own checkpoint; a failed later photo does not erase earlier pages. Retry a failed photo when provider quota allows. If combination fails, use **Save page order** with the saved page readings. Resuming an unchanged ordered chain restores its decisions; changing order creates another combined snapshot. Original photo bytes are not retained server-side: **Attach photo** checks the matching original locally before showing it.
+
+Do not auto-delete flagged overlaps: repeated purchases may be valid. Reject only confirmed duplicates. Item mismatches, unresolved discounts or a rejected discount target block item allocations. For prices already discounted, exclude a duplicate discount allocation or correct the purchase to the printed gross amount; compare the photo before deciding. A payment slip without a printed final total stays outside spending. See [item and chain rules](ITEMS_AND_PAGES.md).
+
+Groq HTTP 429 is checkpointed with a sanitized error code. The UI retries failed uploads explicitly; batch retries require `--retry-failed`. A daily allowance may need much longer than the bounded Retry-After cap. New credentials are supplied through `GROQ_API_KEY`; keys are never part of cache identity, so successful source/configuration checkpoints remain reusable. No automatic credential rotation is implemented.

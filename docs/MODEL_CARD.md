@@ -18,7 +18,7 @@ Portfolio demonstrations, regression testing of extraction contracts, and experi
 
 ## Limitations
 
-Groq vision supports JPEG/PNG/WebP transcription and extraction. No PDF/HEIC ingestion, line items, multi-invoice splitting, tax-rate reasoning, discount handling, multi-currency conversion, credit-note support, authenticated multi-user approval, calibrated confidence, or distributed processing. Image quotes ground to model transcription in Groq-only mode or independent OCR text in hybrid mode. OCR boxes locate image regions but do not prove recognition correctness; every photo requires review. Quote occurrence and label binding cannot prove semantic correctness in every layout. Exact repeated evidence keeps the supported value and triggers review. AI prompt injection is not solved by instruction-like text matching or schema output.
+Groq vision supports JPEG/PNG/WebP transcription and extraction. No PDF/HEIC ingestion, multi-invoice splitting, tax-rate reasoning, multi-currency conversion, credit-note support, authenticated multi-user approval, calibrated confidence, or distributed processing. Image quotes ground to model transcription in Groq-only mode or independent OCR text in hybrid mode. OCR boxes locate image regions but do not prove recognition correctness; every photo requires review. Quote occurrence and label binding cannot prove semantic correctness in every layout. Exact repeated evidence keeps the supported value and triggers review. AI prompt injection is not solved by instruction-like text matching or schema output.
 
 The baseline only supports declared labels and constrained date/amount formats. The AI provider may interpret broader prose, but unlabelled source binding requires review. The schema and policy favor abstention over inferred values.
 
@@ -30,4 +30,10 @@ Version 0.4 adds optional independently grounded PaddleOCR, ten proposed fields,
 
 ## Version 0.5 spending categories
 
-Receipt category suggestions use explicit keyword rules and abstain on mixed/unknown matches. They are separate from extraction scores, always require a saved user choice and have no measured real-receipt classification accuracy. Current groups apply to whole receipts; mixed basket/item categories and calibrated classification remain future work.
+Receipt category suggestions use explicit keyword rules and abstain on mixed/unknown matches. They are separate from extraction scores, always require a saved user choice and have no measured real-receipt classification accuracy. No-item groups apply to whole receipts. Vision item categories are separate, uncalibrated suggestions; confirmed item allocations require exact total reconciliation. Calibrated classification remains future work.
+
+## Item interpretation and continuity
+
+Version 0.6 preserves literal line descriptions and codes, proposes readable labels and categories, and tracks separate human acceptance. Evidence scores concern source support, not product identification or category accuracy. There is no product catalogue lookup, SKU verification or trained receipt-specific classifier. Generic vision can confuse a snack-bar category with confectionery or overlook a promotion. Unknowns should be corrected or left unallocated.
+
+Multi-photo chains retain order and per-page evidence but do not prove that all photos belong to one physical receipt. Exact cross-page row matches only flag possible overlap; similar-looking or OCR-corrupted repeats can be missed. Human continuity, overlap and final-total review are required. Header balance can differ from purchase charges on hotel/payment statements; do not reinterpret settlements as new spending.

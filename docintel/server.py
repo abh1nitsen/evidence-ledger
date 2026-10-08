@@ -16,6 +16,7 @@ from .core import VERSION, baseline, validate, digest
 from .documents import attach_document
 from .reviews import ReviewStore, ReviewConflict
 from .spending import CATEGORIES
+from .items import CATEGORIES as ITEM_CATEGORIES, KINDS
 from .pipeline import run
 from .providers import Groq, ProviderError
 from .vision import MAX_IMAGE_BYTES
@@ -77,7 +78,7 @@ def handler(report, image_provider=None, image_db=None, review_threshold=0.85):
                 except (OSError,sqlite3.Error):
                     self.send(503,'{"error":"review_storage_unavailable"}')
             elif path == "/api/config":
-                self.send(200, json.dumps({"categories":CATEGORIES,"image_enabled": image_provider is not None,
+                self.send(200, json.dumps({"item_categories":ITEM_CATEGORIES,"item_kinds":KINDS,"categories":CATEGORIES,"image_enabled": image_provider is not None,
                     "image_provider": image_provider.name if image_provider else None, "model": image_provider.model if image_provider else None,
                     "ocr_enabled": getattr(image_provider,"uses_ocr",False), "score_calibrated":False, "review_threshold":review_threshold, "max_image_bytes": MAX_IMAGE_BYTES}))
             elif path.startswith("/api/review/") and re.fullmatch(r"[a-f0-9]{64}",path.removeprefix("/api/review/")):
@@ -99,16 +100,30 @@ def handler(report, image_provider=None, image_db=None, review_threshold=0.85):
             if self.headers.get("Origin") not in expected:
                 self.send(403, '{"error":"origin_rejected"}')
                 return
-            if self.path in {"/api/review","/api/group"}:
+            if self.path == "/api/pages":
+                try:
+                    if self.headers.get('Content-Type')!='application/json':raise ValueError()
+                    length=int(self.headers.get('Content-Length','0'))
+                    if not 0<length<=4096:raise ValueError()
+                    data=json.loads(self.rfile.read(length))
+                    if set(data)!={'document_ids'}:raise ValueError()
+                    self.send_result(reviews.chain(data['document_ids']))
+                except (ValueError,KeyError,TypeError):self.send(400,'{"error":"invalid_page_chain"}')
+                except (OSError,sqlite3.Error):self.send(503,'{"error":"review_storage_unavailable"}')
+                return
+            if self.path in {"/api/review","/api/group","/api/item-review"}:
                 try:
                     if self.headers.get("Content-Type")!="application/json": raise ValueError()
                     length=int(self.headers.get("Content-Length","0"))
-                    if not 0<length<=4096: raise ValueError()
+                    if not 0<length<=8192: raise ValueError()
                     data=json.loads(self.rfile.read(length))
-                    required={"document_id","category","tags","revision"} if self.path=="/api/group" else {"document_id","field","action","value","revision"}
+                    required={"document_id","item_id","action","values","revision"} if self.path=="/api/item-review" else {"document_id","category","tags","revision"} if self.path=="/api/group" else {"document_id","field","action","value","revision"}
                     if set(data)!=required: raise ValueError()
                     if not isinstance(data["document_id"],str) or not re.fullmatch(r"[a-f0-9]{64}",data["document_id"]): raise ValueError()
-                    result=reviews.group(data["document_id"],data["category"],data["tags"],data["revision"]) if self.path=="/api/group" else reviews.decide(data["document_id"],data["field"],data["action"],data["value"],data["revision"])
+                    if self.path=="/api/item-review":
+                        result=reviews.decide_item(data["document_id"],data["item_id"],data["action"],data["values"],data["revision"])
+                    else:
+                        result=reviews.group(data["document_id"],data["category"],data["tags"],data["revision"]) if self.path=="/api/group" else reviews.decide(data["document_id"],data["field"],data["action"],data["value"],data["revision"])
                     self.send_result(result)
                 except ReviewConflict:
                     self.send(409,'{"error":"review_changed_reload_saved_reading"}')

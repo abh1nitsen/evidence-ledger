@@ -58,7 +58,7 @@ class OpenAI:
                     raise ProviderError("provider response exceeds size limit")
                 data = json.loads(raw)
                 if data.get("status") != "completed":
-                    raise ProviderError("provider response incomplete")
+                    raise ProviderError("provider response incomplete", "provider_incomplete")
                 parts = [part for item in data.get("output", []) for part in item.get("content", [])]
                 if any(part.get("type") == "refusal" for part in parts):
                     raise ProviderError("provider refused extraction")
@@ -85,21 +85,22 @@ class Groq:
     name = "groq"
     supports_images = True
 
-    def __init__(self, model="qwen/qwen3.8-27b", retries=2, timeout=45, sleep=time.sleep):
+    def __init__(self, model="qwen/qwen3.8-27b", retries=2, timeout=90, sleep=time.sleep):
         from .vision import IMAGE_PROMPT, IMAGE_SCHEMA, PREPROCESS_VERSION
         self.model, self.retries, self.timeout, self.sleep = model, retries, timeout, sleep
         self.key = os.environ.get("GROQ_API_KEY", "")
         if not self.key:
             raise ProviderError("GROQ_API_KEY is required")
-        self.identity = digest("groq:json-mode-2500-v2:" + VERSION + model + PROMPT + json.dumps(SCHEMA, sort_keys=True))
+        self.identity = digest("groq:json-mode-image4000-qwen-instruct-v4:" + VERSION + model + PROMPT + json.dumps(SCHEMA, sort_keys=True))
         self.image_identity = digest(self.identity + IMAGE_PROMPT + json.dumps(IMAGE_SCHEMA, sort_keys=True) + PREPROCESS_VERSION)
 
     def complete(self, messages):
         payload = {"model": self.model, "messages": messages, "temperature": 0,
-                   "max_completion_tokens": 2500, "response_format": {"type": "json_object"}}
+                   "max_completion_tokens": 4000 if any(isinstance(m.get("content"),list) for m in messages) else 2500, "response_format": {"type": "json_object"}}
+        if self.model.startswith("qwen/"):payload["reasoning_effort"]="none"
         request = urllib.request.Request("https://api.groq.com/openai/v1/chat/completions",
             data=json.dumps(payload).encode(), headers={"Authorization": "Bearer " + self.key,
-                                                       "Content-Type": "application/json", "User-Agent": "EvidenceLedger/0.2"})
+                                                       "Content-Type": "application/json", "User-Agent": "EvidenceLedger/0.6"})
         for attempt in range(self.retries + 1):
             delay = min(2 ** attempt, 8)
             try:
@@ -110,7 +111,7 @@ class Groq:
                 data = json.loads(raw)
                 choice = data["choices"][0]
                 if choice.get("finish_reason") != "stop":
-                    raise ProviderError("provider response incomplete")
+                    raise ProviderError("provider response incomplete", "provider_incomplete")
                 if choice["message"].get("refusal"):
                     raise ProviderError("provider refused extraction")
                 return json.loads(choice["message"]["content"])

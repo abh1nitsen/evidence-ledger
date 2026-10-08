@@ -33,3 +33,5 @@ This account already contains projects in safety/red teaming, RAG evaluation, th
 Do not claim these projects exist until built. This repository can serve as the implementation and documentation standard for subsequent work.
 
 Version 0.4 deepens the same engineering aspect through independent pretrained OCR, document-role-aware extraction, transparent uncalibrated review scores and durable human corrections. The key lesson is separating recognition, semantic assignment, validation and acceptance. Three authored layouts and two private debugging cases are useful regressions; confidence calibration and merchant-disjoint generalisation remain future evidence requirements.
+
+Version 0.6 extends the same reliability aspect into mixed-basket interpretation and ordered page provenance: original codes/descriptions remain inspectable, human item decisions must reconcile with the final total, and multi-photo overlaps are preserved for review. Source support is distinct from category/product certainty. A compact receipt interface keeps developer reports outside the main workflow.

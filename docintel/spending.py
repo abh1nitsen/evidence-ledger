@@ -24,8 +24,11 @@ def summarize(documents):
         fields=d["fields"];values=d["effective_fields"];spend=d.get("spending",{})
         if any(not fields.get(k,{}).get("human_review") or values.get(k) is None for k in ("total","currency")):
             excluded["total_or_currency_not_reviewed"]+=1;continue
-        if not spend.get("category"):
+        item_mode=bool(d.get('items'))
+        if not item_mode and not spend.get("category"):
             excluded["category_not_saved"]+=1;continue
+        if item_mode and d.get('item_reconciliation',{}).get('status')!='matched':
+            excluded['items_not_reviewed_or_reconciled']+=1;continue
         if any(i["code"]=="reviewed_arithmetic_mismatch" for i in d.get("effective_issues",[])):
             excluded["amounts_do_not_add_up"]+=1;continue
         amount=Decimal(values["total"])
@@ -39,7 +42,10 @@ def summarize(documents):
             seen_bills.add(identity)
         date_review=fields.get("invoice_date",{}).get("human_review")
         month=values["invoice_date"][:7] if date_review and values.get("invoice_date") else "Date not reviewed"
-        key=(spend["category"],values["currency"],month)
-        group=groups.setdefault(key,{"category":key[0],"currency":key[1],"month":key[2],"total":Decimal(0),"receipts":0})
-        group["total"]+=amount;group["receipts"]+=1;included+=1
-    return {"groups":[{**v,"total":format(v["total"],".2f")} for _,v in sorted(groups.items())],"included_receipts":included,"excluded":dict(excluded),"scope":"receipt-level reviewed spend; no exchange-rate conversion or line-item analysis"}
+        allocations=d['item_reconciliation']['allocations'] if item_mode else [{'category':spend['category'],'amount':str(amount)}]
+        for allocation in allocations:
+            key=(allocation['category'],values['currency'],month)
+            group=groups.setdefault(key,{'category':key[0],'currency':key[1],'month':key[2],'total':Decimal(0),'receipts':0})
+            group['total']+=Decimal(allocation['amount']);group['receipts']+=1
+        included+=1
+    return {"groups":[{**v,"total":format(v["total"],".2f")} for _,v in sorted(groups.items())],"included_receipts":included,"excluded":dict(excluded),"scope":"reviewed receipt or reconciled item spend; no exchange-rate conversion"}

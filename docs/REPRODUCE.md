@@ -56,3 +56,9 @@ Run `python scripts/generate_document_fixtures.py` to regenerate the three indep
 Review decisions are stored next to the image database in `<image-db-stem>-reviews.sqlite`. Do not delete that file when retaining your reviews. Original photos are temporary; save them separately and re-upload or use **Resume a saved reading** to restore decisions. Keep private documents and exported review histories outside Git.
 
 The full tested OCR dependency snapshot is `requirements-ocr.lock.txt`. In a fresh Python 3.12 environment, use `python -m pip install -r requirements-ocr.lock.txt` to reproduce its pinned transitive package versions, then run the repository modules. This snapshot was tested on Windows; other platforms need compatible wheels and their own verification. Model weight hashes are recorded in extraction metadata.
+
+## Version 0.6 items and page chains
+
+The image provider proposes line items in addition to headers. Start the server with the vision extra and key, read a receipt, then use **Items** to accept/reject/correct each line. Use **Add next page** for successive photos; save the page order and review possible overlap rows. A restored chain supports **Attach photo** per page, checking the original bytes locally without calling the provider. Details, limits, endpoints and recovery are in [ITEMS_AND_PAGES.md](ITEMS_AND_PAGES.md).
+
+Developer reports remain CLI/API outputs. The main screen offers receipt review and spending rather than a developer batch panel. Historical committed image benchmarks predate the v3 item envelope; they are not current item-accuracy benchmarks. Current deterministic item/page coverage is in `tests/test_items.py`, `tests/test_pages.py` and HTTP boundary tests. The validation record separates automated checks, authored fixture UI checks and private live diagnostics.

@@ -30,7 +30,7 @@ class FakeVision:
 
     def extract_image(self, prepared):
         self.calls += 1
-        return {"transcript": TEXT, "document_type":"invoice", "additional_fields":optional_fields(TEXT), "fields": baseline(TEXT), "quality_issues": []}
+        return {"transcript": TEXT, "document_type":"invoice", "additional_fields":optional_fields(TEXT), "fields": baseline(TEXT), "quality_issues": [], "items":[]}
 
 
 def image_bytes(size=(800, 1000), color="white", format="PNG", **kwargs):
@@ -150,7 +150,7 @@ class GroqTests(unittest.TestCase):
             self.assertEqual(self.provider().extract(TEXT), baseline(TEXT))
             request = call.call_args.args[0]
             self.assertEqual(request.full_url, "https://api.groq.com/openai/v1/chat/completions")
-            self.assertEqual(request.get_header("User-agent"), "EvidenceLedger/0.2")
+            self.assertEqual(request.get_header("User-agent"), "EvidenceLedger/0.6")
             self.assertEqual(json.loads(request.data)["response_format"], {"type": "json_object"})
 
     def test_image_request_contains_data_url(self):
@@ -159,6 +159,8 @@ class GroqTests(unittest.TestCase):
             body = json.loads(call.call_args.args[0].data)
             self.assertEqual(body["messages"][0]["content"][1]["image_url"]["url"], "data:image/jpeg;base64,test")
             self.assertNotIn("tools", body)
+            self.assertEqual(body["max_completion_tokens"],4000)
+            self.assertEqual(body["reasoning_effort"],"none")
 
     def test_incomplete_output_fails(self):
         with patch("urllib.request.urlopen", return_value=self.response(finish="length")):

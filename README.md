@@ -6,7 +6,7 @@ Built by [Abhinit Sen](https://github.com/abh1nitsen). This portfolio project de
 
 An invoice with `Subtotal: 1200.00`, `Tax: 96.00`, and `Total: 1300.00` produces structured fields plus an `arithmetic_mismatch` review reason. An invented vendor with no source quote is discarded. A crashed batch resumes from its SQLite checkpoints.
 
-![Invoice photo upload with live Groq extraction and review](docs/images/review-workflow.jpg)
+![Compact item review using an authored UI test fixture](docs/images/items-pages-layout.jpg)
 
 ## What is implemented
 
@@ -16,10 +16,10 @@ An invoice with `Subtotal: 1200.00`, `Tax: 96.00`, and `Total: 1300.00` produces
 - Exact source quotes, character spans, content fingerprints, semantic label checks, and decimal arithmetic validation.
 - Visible suggestions with uncalibrated evidence scores and durable Accept / Reject / Edit decisions; source, label and format conflicts remain explicit.
 - Transactional per-document checkpoints, process locking, content/configuration-aware caching, atomic JSON exports, and bounded network retries.
-- A local review UI with source highlighting, example invoices, JSON download, and the exported batch ledger.
+- A local review UI with source highlighting, example invoices, JSON download, and separate receipt/spending views.
 - Authored synthetic data, regression tests, evaluation reports, and Windows/Linux CI.
 
-**Prototype boundary:** input is UTF-8 `.txt` or a single JPEG/PNG/WebP invoice image. Groq vision transcribes photographed/scanned invoices and extracts fields. PDF parsing, HEIC/TIFF, line items, ERP integration, and payment execution are not implemented. The offline baseline is deterministic rules, not a trained AI model. There is no hidden AI fallback.
+**Prototype boundary:** input is UTF-8 `.txt` or JPEG/PNG/WebP invoice images (up to ten ordered photos per receipt). Groq vision transcribes photographed/scanned invoices and extracts fields. PDF parsing, HEIC/TIFF, ERP integration, and payment execution are not implemented. The offline baseline is deterministic rules, not a trained AI model. There is no hidden AI fallback.
 
 ## Run in five minutes
 
@@ -79,7 +79,7 @@ python -m docintel evaluate --images --dataset data/images --provider groq --out
 
 Use the virtual-environment Python executable on Windows. Supported images are at most **8,000,000 bytes / 20 megapixels**, single-frame, and at least 32 pixels on both sides. Images are normalized to upright RGB JPEG with a longest edge of 2,000 pixels. No perspective correction or separate independent OCR is claimed.
 
-Groq uses JSON object mode with independent schema validation, a 45-second per-request timeout, and at most two retries. Rate-limit retries honor numeric `Retry-After`, capped at 60 seconds per delay; otherwise wait 20 seconds. There is no silent provider/model switch. See [IMAGE_INPUT.md](docs/IMAGE_INPUT.md) for evidence, privacy, quality and recovery boundaries.
+Groq uses JSON object mode with independent schema validation, a 90-second per-request timeout, and at most two retries. Rate-limit retries honor numeric `Retry-After`, capped at 60 seconds per delay; otherwise wait 20 seconds. There is no silent provider/model switch. See [IMAGE_INPUT.md](docs/IMAGE_INPUT.md) for evidence, privacy, quality and recovery boundaries.
 
 ### OpenAI text extraction
 
@@ -131,7 +131,7 @@ MIT licensed. Read [CONTRIBUTING.md](CONTRIBUTING.md) to extend providers or doc
 
 ## Using the receipt reader
 
-Choose a photo, click **Read receipt**, then compare the merchant, date, total and seven detailed fields with your original. **Enlarge photo** opens a larger view; **Evidence & checks** reveals evidence, and **Locate in reading** highlights matching transcription characters. **Not confirmed** is an abstention, not a zero. Rejected model suggestions remain separate from usable values. A successful reading still needs human confirmation; the yellow notice is not an API failure. Currency is independent of amounts: `$14.09` can become `14.09` while the currency stays unknown. Download JSON when ready. Text examples and the sample batch ledger are secondary views. See [the UI walkthrough](docs/UI_GUIDE.md).
+Choose a photo, click **Read receipt**, then compare the merchant, date, total and detailed fields with your original. **Enlarge photo** opens a larger view; **Evidence & checks** reveals evidence, and **Locate in reading** highlights matching transcription characters. **Not confirmed** is an abstention, not a zero. Rejected model suggestions remain separate from usable values. A successful reading still needs human confirmation; the yellow notice is not an API failure. Currency is independent of amounts: `$14.09` can become `14.09` while the currency stays unknown. Download JSON when ready. Text examples are a secondary view. Developer diagnostics remain available through the CLI/API. See [the UI walkthrough](docs/UI_GUIDE.md).
 
 ## Independent OCR and saved human review
 
@@ -159,3 +159,11 @@ The three authored invoice, retail and payment-slip layouts measure **proposed**
 ## Spending groups and phone capture
 
 Save an editable receipt category and tags, then use the spending overview to compare reviewed totals by category, currency and month. A tentative keyword suggestion never confirms a group automatically. Totals and currency must be explicitly reviewed; BASE is not a substitute for TOTAL. The responsive UI includes a separate rear-camera capture control. Phone access still requires a reachable backend; this release stays loopback-only. See [spending and mobile guide](docs/SPENDING_AND_MOBILE.md) for semantics, duplicate handling and practical access options.
+
+## Item review and long receipts (0.6)
+
+The desktop photo and results panes have matching bounded heights. **Details**, **Items** and **Review** keep the work compact; select one field/item to see its evidence and actions. Spending has a separate view. Mobile uses one column with a photo visibility toggle. The developer batch view has been removed from the receipt screen.
+
+Vision proposes readable item names and categories while preserving printed abbreviations and codes. These suggestions need confirmation; codes alone do not establish an exact product identity. Accept, reject or correct every line. Reviewed amounts must reconcile with the reviewed final total and currency before item allocations enter spending. Discounts are negative; quantity never multiplies an already printed line amount; payments are excluded and tax is added at most once. Receipt-level grouping remains available when no items exist.
+
+For long receipts, read the first photo, choose **Add next page**, then read each subsequent photo. Verify order, save changes and check possible overlap rows. Each page retains its source hash and cached reading. Matching rows are flagged, never automatically removed: two identical purchases can be legitimate. Reordering creates a distinct combined snapshot; the previous review remains saved. Original photo bytes are not retained on the server. See [Items and page chains](docs/ITEMS_AND_PAGES.md) for the contract, limits and recovery workflow.

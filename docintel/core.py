@@ -5,7 +5,7 @@ import hashlib
 import json
 import re
 
-VERSION = "invoice-v2.0.2"
+VERSION = "invoice-v3.0.0"
 FIELDS = ("invoice_id", "vendor", "invoice_date", "currency", "subtotal", "tax", "total")
 LABELS = {
     "invoice_id": r"(?:(?:INV|Invoice (?:ID|Number|No\.?))|(?:Tax )?invoice/Receipt No\.?)",

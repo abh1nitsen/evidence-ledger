@@ -136,3 +136,34 @@ class HTTPTests(unittest.TestCase):
         request=urllib.request.Request(self.base+'/api/group',data=json.dumps({**body,'revision':1}).encode(),headers={'Content-Type':'application/json','Origin':'https://untrusted.example'})
         with self.assertRaises(urllib.error.HTTPError) as error: urllib.request.urlopen(request,timeout=3)
         self.assertEqual(error.exception.code,403)
+
+    def test_item_review_unknown_item_and_foreign_origin_rejected(self):
+        with self.post() as response: result=json.load(response)
+        body={'document_id':result['review']['document_id'],'item_id':'0','action':'accept','values':None,'revision':0}
+        for origin,expected in ((self.base,400),('https://untrusted.example',403)):
+            request=urllib.request.Request(self.base+'/api/item-review',data=json.dumps(body).encode(),headers={'Content-Type':'application/json','Origin':origin})
+            with self.assertRaises(urllib.error.HTTPError) as error:urllib.request.urlopen(request,timeout=3)
+            self.assertEqual(error.exception.code,expected)
+
+    def test_item_and_page_review_restoration_and_exports(self):
+        from docintel.reviews import ReviewStore
+        from test_pages import page
+        store=ReviewStore(Path(self.temp.name)/"uploads-reviews.sqlite")
+        store.register("a"*64,page("one"));store.register("b"*64,page("two"))
+        def api(path,body):
+            request=urllib.request.Request(self.base+path,data=json.dumps(body).encode(),headers={"Content-Type":"application/json","Origin":self.base})
+            return urllib.request.urlopen(request,timeout=3)
+        with api("/api/pages",{"document_ids":["a"*64,"b"*64]}) as response: result=json.load(response)
+        self.assertEqual(len(result["pages"]),2)
+        body={"document_id":result["review"]["document_id"],"item_id":"5","action":"reject","values":None,"revision":0}
+        with api("/api/item-review",body) as response: reviewed=json.load(response)
+        self.assertEqual(reviewed["items"][5]["human_review"]["action"],"reject")
+        with urllib.request.urlopen(self.base+reviewed["download_url"],timeout=3) as response: exported=json.load(response)
+        self.assertEqual(exported["review"]["revision"],1)
+        self.assertEqual(len(exported["item_review_history"]),1)
+        with api("/api/pages",{"document_ids":["a"*64,"b"*64]}) as response: restored=json.load(response)
+        self.assertEqual(restored["review"]["revision"],1)
+        with self.assertRaises(urllib.error.HTTPError) as error: api("/api/item-review",body)
+        self.assertEqual(error.exception.code,409)
+        with self.assertRaises(urllib.error.HTTPError) as error: api("/api/pages",{"document_ids":["a"*64,"a"*64]})
+        self.assertEqual(error.exception.code,400)

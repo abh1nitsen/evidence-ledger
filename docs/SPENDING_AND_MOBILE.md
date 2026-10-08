@@ -10,7 +10,7 @@ Grouping is persisted in the same SQLite database, using transactional, revision
 
 Identical source bytes are deduplicated, preferring the most reviewed extraction revision. Different photos with the same complete effective merchant, identifier, date, currency and total are flagged as possible duplicates and counted once. This heuristic can merge genuinely distinct receipts with reused identifiers, and cannot identify every duplicate if identifiers or dates differ/are absent. All documents remain available as saved readings. Separate refunds, budgets, exchange rates, identity management and accounting reconciliation are future work.
 
-This version groups whole receipts. A supermarket basket can include groceries, cleaning products and cosmetics. Reliable item-level spending needs a separate line-item schema (description, quantity, unit price, discounts, line total), source grounding, human review and reconciliation to the bill total. Receipt categories do not imply that every item belongs to that category. No broad category-accuracy claim follows from the rules.
+Receipts without extracted items use whole-receipt groups. Mixed baskets use the reviewed item allocation workflow described below; receipt categories do not imply that every item belongs to that category.
 
 ## Taking a bill photo on a phone
 
@@ -30,3 +30,9 @@ Recommended next step: a hosted authenticated mobile web app, keeping OCR/Groq k
 A home-screen shortcut is a useful convenience once the URL is reachable. Full installable PWA/offline upload queues and smartphone Share Target support are future enhancements; extraction still requires the backend and Groq connection.
 
 Sources: [MDN capture attribute](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/capture), [MDN file inputs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/file), [Tailscale Serve](https://tailscale.com/docs/features/tailscale-serve), [private application sharing](https://tailscale.com/docs/use-cases/application-testing/share-local-dev-server-with-team).
+
+## Version 0.6 item allocations
+
+When a receipt has extracted items, spending uses reviewed line categories rather than its single receipt category. Every line must have an Accept/Reject/Edit decision; final total and currency must also be reviewed. Printed line amounts are added without multiplying quantity again, discounts inherit a linked purchase category, payments are excluded, and tax is added once only when required to reconcile. Missing totals, unallocated basket discounts and mismatches exclude the receipt. With no item lines, the saved receipt category remains the fallback. See [Items and page chains](ITEMS_AND_PAGES.md).
+
+Phone capture can add successive photos to the same active receipt using **Add next page**. This does not change backend access: the application is still loopback-only. A hosted authenticated backend or an explicitly configured private connection is required to reach it from another device; neither is implemented here. Physical-phone capture remains untested.
