@@ -15,7 +15,7 @@ from urllib.parse import urlparse
 from .core import VERSION, baseline, validate, digest
 from .documents import attach_document
 from .reviews import ReviewStore, ReviewConflict
-from .spending import CATEGORIES
+from .spending import CATEGORIES, is_demo
 from .items import CATEGORIES as ITEM_CATEGORIES, KINDS
 from .pipeline import run
 from .providers import Groq, ProviderError
@@ -180,6 +180,7 @@ def handler(report, image_provider=None, image_db=None, review_threshold=0.85):
                     raise ValueError()
                 result=attach_document(validate(text, baseline(text)),text)
                 result["transcript"]=text
+                result["demo"]=is_demo(result)
                 self.send_result(result,digest(result["source_sha256"]+VERSION+":ui-text"))
             except (ValueError, KeyError, TypeError):
                 self.send(400, '{"error":"invalid_document"}')

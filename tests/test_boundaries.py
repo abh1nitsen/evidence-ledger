@@ -167,3 +167,18 @@ class HTTPTests(unittest.TestCase):
         self.assertEqual(error.exception.code,409)
         with self.assertRaises(urllib.error.HTTPError) as error: api("/api/pages",{"document_ids":["a"*64,"a"*64]})
         self.assertEqual(error.exception.code,400)
+
+    def test_spending_api_marks_practice_and_keeps_it_out_of_personal_totals(self):
+        from docintel.spending import DEMO_TEXT
+        with self.post(DEMO_TEXT) as response: result=json.load(response)
+        self.assertTrue(result['demo'])
+        with urllib.request.urlopen(self.base+'/api/spending',timeout=3) as response: summary=json.load(response)
+        self.assertEqual(summary['receipts'],[])
+        self.assertEqual(summary['totals'],[])
+        self.assertEqual(len(summary['demo']['receipts']),1)
+        with self.post() as response: real=json.load(response)
+        self.assertFalse(real['demo'])
+        with urllib.request.urlopen(self.base+'/api/spending',timeout=3) as response: summary=json.load(response)
+        self.assertEqual(len(summary['receipts']),1)
+        self.assertEqual(summary['receipts'][0]['document_id'],real['review']['document_id'])
+        self.assertEqual(summary['needs_review'],1)

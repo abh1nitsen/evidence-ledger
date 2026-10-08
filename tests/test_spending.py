@@ -58,3 +58,44 @@ class SpendingTests(unittest.TestCase):
   self.assertEqual(suggest_category({'transcript':'Cafe lunch'})['category'],'Dining')
   self.assertTrue(suggest_category({'transcript':'Cafe lunch'})['needs_confirmation'])
   self.assertEqual(suggest_category({'transcript':'Cafe and supermarket'})['category'],'Unclassified')
+
+ def test_demo_examples_never_enter_personal_totals(self):
+  from docintel.spending import DEMO_TEXT
+  demo=attach_document(validate(DEMO_TEXT,baseline(DEMO_TEXT)),DEMO_TEXT);demo['transcript']=DEMO_TEXT
+  self.store.register('b'*64,demo);self.ready('b'*64);self.ready()
+  r=self.store.spending_summary()
+  self.assertEqual(r['totals'],[{'currency':'USD','total':'110.00'}])
+  self.assertEqual(r['included_receipts'],1);self.assertEqual(len(r['receipts']),1)
+  self.assertEqual(len(r['demo']['receipts']),1);self.assertEqual(r['demo']['included_receipts'],1)
+ def test_non_demo_pasted_text_remains_real(self):
+  self.ready();r=self.store.spending_summary()
+  self.assertEqual(r['included_receipts'],1);self.assertEqual(r['demo']['receipts'],[])
+ def test_receipt_status_and_review_target_follow_missing_step(self):
+  r=self.store.spending_summary()['receipts'][0]
+  self.assertEqual(r['status'],'needs_review');self.assertEqual(r['field'],'total');self.assertFalse(r['amount_confirmed'])
+  self.store.decide('a'*64,'total','accept',None,0)
+  self.assertEqual(self.store.spending_summary()['receipts'][0]['field'],'currency')
+  self.store.decide('a'*64,'currency','accept',None,1)
+  self.assertEqual(self.store.spending_summary()['receipts'][0]['target'],'grouping')
+  self.store.group('a'*64,'Shopping',[],2)
+  r=self.store.spending_summary()['receipts'][0]
+  self.assertEqual(r['status'],'included');self.assertFalse(r['date_confirmed']);self.assertTrue(r['amount_confirmed'])
+ def test_unique_receipt_counts_hide_old_extraction_versions(self):
+  first=self.store.get('a'*64);second=copy.deepcopy(first);second['review']['document_id']='b'*64
+  r=summarize([first,second]);self.assertEqual(len(r['receipts']),1);self.assertEqual(r['needs_review'],1)
+ def test_different_photo_duplicate_is_separate_from_main_receipts(self):
+  first=self.ready();second=copy.deepcopy(first);second['source_sha256']='other-photo';second['review']['document_id']='b'*64
+  r=summarize([first,second]);self.assertEqual(r['included_receipts'],1)
+  self.assertEqual([x['status'] for x in r['receipts']],['included','possible_duplicate'])
+  self.assertEqual(r['receipts'][1]['duplicate_of'],'a'*64)
+ def test_combined_receipt_hides_page_and_other_order_versions(self):
+  from test_pages import page
+  a,b=page('one'),page('two');self.store.register('b'*64,a);self.store.register('c'*64,b)
+  first=self.store.chain(['b'*64,'c'*64]);second=self.store.chain(['c'*64,'b'*64])
+  r=summarize([first,second,self.store.get('b'*64),self.store.get('c'*64)])
+  self.assertEqual(len(r['receipts']),1);self.assertEqual(r['receipts'][0]['page_count'],2)
+  self.assertEqual(r['needs_review'],1);self.assertEqual(r['excluded']['page_in_receipt_chain'],2)
+ def test_arithmetic_mismatch_has_clear_status(self):
+  self.ready();self.store.decide('a'*64,'tax','edit','12.00',3)
+  r=self.store.spending_summary()['receipts'][0]
+  self.assertEqual(r['status'],'amount_mismatch');self.assertEqual(self.store.spending_summary()['totals'],[])

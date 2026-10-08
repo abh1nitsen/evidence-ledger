@@ -29,3 +29,9 @@ Use **Details**, **Items** and **Review** inside the results pane. Select one ro
 On **Items**, compare the printed abbreviation/code and proposed readable name with the photo. Category/name inference can be wrong even if the amount is grounded. **Accept suggestion**, **Reject item**, and **Save correction** create saved audit events. Specify which purchase a discount reduces, or explicitly choose its category if it applies to a basket. Review payment/tax rows too. An unresolved amount mismatch blocks item spending.
 
 Read one photo first. Click **Add next page**, choose its photo and click **Read receipt**. Repeat in top-to-bottom order, ideally with a small overlap showing continuity. Use page arrows and **Save page order** after rearranging; **Remove** detaches a page without erasing its original saved reading. Possible duplicated overlap rows require your decision. **Start new receipt** clears the active workspace; saved readings remain. Restoring a chain restores decisions and provenance, but use each page’s **Attach photo** button to inspect its original pixels. See [the chain contract](ITEMS_AND_PAGES.md).
+
+## Spending overview (0.7)
+
+Open **Spending** to see confirmed totals and categories, followed by **Your receipts**. Use **To review**, **Included** or **All**. A receipt amount shown in the list is not necessarily included: its status and next-step message explain what is missing. **Finish review** opens the receipt at that step; saved corrections update the overview automatically. Practice data is collapsed under **Demo examples** and never affects your totals. Earlier versions and individual chain pages do not inflate the receipt count. Your original extractions and review history remain saved.
+
+![Spending overview using independently authored UI fixtures](images/spending-intuitive.jpg)

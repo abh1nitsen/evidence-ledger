@@ -1,5 +1,12 @@
 # Validation record
 
+## Version 0.7 clear spending overview
+
+Verified 8 October 2026: **113 automated tests passed**. Added practice/personal separation, real pasted-text eligibility, unique receipt counts, explicit next-step statuses/review targets, distinct different-photo duplicate inspection, chain/component-page suppression and practice metadata through HTTP. Existing monetary reconciliation, currency separation, saved-decision and recovery tests remain passing. No extraction model/prompt was changed or fresh provider request required for this UI update.
+
+Browser checks used authored fixtures to verify separate EUR/USD totals, category sums, Included/To review filters, automatic summary refresh after a saved synthetic correction and collapsed practice data. A private receipt opened directly at its missing confirmation step without accepting it. At 320 pixels the document and spending panel had no horizontal overflow. Synthetic-only previews are `docs/images/spending-intuitive.jpg` and `docs/images/spending-intuitive-mobile.jpg`. These viewport tests do not establish physical-phone compatibility. Private screenshots and financial records remain outside Git.
+
+
 ## Version 0.6 item review, compact layout and page chains
 
 Verified 8 October 2026: **105 automated tests passed**. Added bounded item schema/grounding, immutable original proposals, transactional item decisions, restart/stale-write recovery, discounts, inclusive/exclusive tax, payment exclusion, exact reconciliation, reviewed-only item spend, ordered page provenance, overlap retention, conflicting headers, repeated-photo rejection and HTTP chain/item exports. Offline evaluation remains 112/112 field matches and 16/16 expected decisions with zero unsafe validations.
