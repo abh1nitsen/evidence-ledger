@@ -1,0 +1,50 @@
+[
+  {
+    "document": "invoice_eur.png",
+    "document_type": "invoice",
+    "proposals": {
+      "vendor": "Juniper Studio",
+      "invoice_id": "EU-2087",
+      "invoice_date": "2026-08-23",
+      "transaction_time": "14:35:00",
+      "currency": "EUR",
+      "subtotal": "255.50",
+      "tax": "51.10",
+      "base_amount": null,
+      "tip": null,
+      "total": "306.60"
+    }
+  },
+  {
+    "document": "retail_sgd.png",
+    "document_type": "retail_receipt",
+    "proposals": {
+      "vendor": "HARBOR PHARMACY",
+      "invoice_id": "RT-701",
+      "invoice_date": "2026-08-22",
+      "transaction_time": "09:12:41",
+      "currency": "SGD",
+      "subtotal": "12.00",
+      "tax": "1.08",
+      "base_amount": null,
+      "tip": null,
+      "total": "13.08"
+    }
+  },
+  {
+    "document": "payment_slip.png",
+    "document_type": "payment_slip",
+    "proposals": {
+      "vendor": "EXAMPLE COFFEE HOUSE",
+      "invoice_id": "400731",
+      "invoice_date": "2025-08-17",
+      "transaction_time": "21:13:04",
+      "currency": "SGD",
+      "subtotal": null,
+      "tax": null,
+      "base_amount": "36.70",
+      "tip": null,
+      "total": null
+    }
+  }
+]

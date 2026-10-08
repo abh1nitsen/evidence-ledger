@@ -1,6 +1,6 @@
 # Model and system card
 
-**System:** Evidence Ledger v0.3.0. **Domain:** invoice intake. **Owner:** Abhinit Sen. **Task:** seven-field structured extraction from text/photos with evidence and review routing.
+**System:** Evidence Ledger v0.4.0. **Domain:** invoice intake. **Owner:** Abhinit Sen. **Task:** document-aware structured extraction from text/photos with evidence and review routing.
 
 ## Methods
 
@@ -18,10 +18,12 @@ Portfolio demonstrations, regression testing of extraction contracts, and experi
 
 ## Limitations
 
-Groq vision supports JPEG/PNG/WebP transcription and extraction. No PDF/HEIC ingestion, line items, multi-invoice splitting, tax-rate reasoning, discount handling, multi-currency conversion, credit-note support, reviewer persistence, calibrated confidence, or distributed processing. Image quotes ground to model transcription, not verified pixels, and every photo requires review. Quote occurrence and label binding cannot prove semantic correctness in every layout. Exact repeated values intentionally reduce coverage. AI prompt injection is not solved by instruction-like text matching or schema output.
+Groq vision supports JPEG/PNG/WebP transcription and extraction. No PDF/HEIC ingestion, line items, multi-invoice splitting, tax-rate reasoning, discount handling, multi-currency conversion, credit-note support, authenticated multi-user approval, calibrated confidence, or distributed processing. Image quotes ground to model transcription in Groq-only mode or independent OCR text in hybrid mode. OCR boxes locate image regions but do not prove recognition correctness; every photo requires review. Quote occurrence and label binding cannot prove semantic correctness in every layout. Exact repeated evidence keeps the supported value and triggers review. AI prompt injection is not solved by instruction-like text matching or schema output.
 
 The baseline only supports declared labels and constrained date/amount formats. The AI provider may interpret broader prose, but unlabelled source binding requires review. The schema and policy favor abstention over inferred values.
 
 ## Evidence
 
 See synthetic-only results in `EVALUATION.md` and verification in `VALIDATION.md`. OpenAI text behavior remains mock-tested. Groq vision is exercised with a real key on a small synthetic smoke set; this does not establish accuracy on natural-light camera photos. There is no trained-model artifact, no real invoice data, and no claim of production readiness.
+
+Version 0.4 adds optional independently grounded PaddleOCR, ten proposed fields, document roles and human decisions. Scores are transparent heuristics with a provisional threshold, not calibrated probabilities. Human acceptance is not machine validation or payment approval. No evaluated replacement model superiority is claimed from a three-layout synthetic regression.

@@ -1,0 +1,1152 @@
+{
+  "schema_version": "invoice-v2.0.2",
+  "provider": "groq",
+  "provider_identity": "1aa2087029467d7f69cafad13bbf6034eb49a3472cfc4659658245ed0da47cc1",
+  "processed": 3,
+  "skipped": 0,
+  "discovered": 3,
+  "remaining": 0,
+  "documents": [
+    {
+      "document": "invoice_eur.png",
+      "job_key": "55a19550919084b342bd1352c49c487dadd126913c7c5c29c50828ed445be824",
+      "status": "completed",
+      "attempts": 1,
+      "provider": "groq",
+      "error": null,
+      "extraction": {
+        "decision": "review",
+        "document_type": "invoice",
+        "document_type_basis": "rule_and_model",
+        "evidence_basis": "model_transcription",
+        "fields": {
+          "base_amount": {
+            "candidate": null,
+            "candidate_quote": null,
+            "ocr_evidence": [],
+            "proposal_value": null,
+            "quote": null,
+            "required": false,
+            "review_score": {
+              "calibrated": false,
+              "components": {
+                "label_support": 0,
+                "ocr_support": 0,
+                "source_match": 0,
+                "supported_format": 0
+              },
+              "forced_review": false,
+              "ocr_recognition": null,
+              "value": 0
+            },
+            "span": null,
+            "spans": [],
+            "state": "not_present",
+            "valid": false,
+            "value": null
+          },
+          "currency": {
+            "candidate": null,
+            "candidate_quote": null,
+            "ocr_evidence": [],
+            "proposal_value": "EUR",
+            "quote": "EUR",
+            "required": true,
+            "review_score": {
+              "calibrated": false,
+              "components": {
+                "label_support": 0.15,
+                "ocr_support": 0,
+                "source_match": 0.45,
+                "supported_format": 0.15
+              },
+              "forced_review": false,
+              "ocr_recognition": null,
+              "value": 0.75
+            },
+            "span": {
+              "end": 96,
+              "start": 93
+            },
+            "spans": [
+              {
+                "end": 96,
+                "start": 93
+              }
+            ],
+            "state": "found",
+            "valid": true,
+            "value": "EUR"
+          },
+          "invoice_date": {
+            "candidate": null,
+            "candidate_quote": null,
+            "ocr_evidence": [],
+            "proposal_value": "2026-08-23",
+            "quote": "23/08/2026",
+            "required": true,
+            "review_score": {
+              "calibrated": false,
+              "components": {
+                "label_support": 0.15,
+                "ocr_support": 0,
+                "source_match": 0.45,
+                "supported_format": 0.15
+              },
+              "forced_review": false,
+              "ocr_recognition": null,
+              "value": 0.75
+            },
+            "span": {
+              "end": 67,
+              "start": 57
+            },
+            "spans": [
+              {
+                "end": 67,
+                "start": 57
+              }
+            ],
+            "state": "found",
+            "valid": true,
+            "value": "2026-08-23"
+          },
+          "invoice_id": {
+            "candidate": null,
+            "candidate_quote": null,
+            "ocr_evidence": [],
+            "proposal_value": "EU-2087",
+            "quote": "EU-2087",
+            "required": true,
+            "review_score": {
+              "calibrated": false,
+              "components": {
+                "label_support": 0.15,
+                "ocr_support": 0,
+                "source_match": 0.45,
+                "supported_format": 0.15
+              },
+              "forced_review": false,
+              "ocr_recognition": null,
+              "value": 0.75
+            },
+            "span": {
+              "end": 42,
+              "start": 35
+            },
+            "spans": [
+              {
+                "end": 42,
+                "start": 35
+              }
+            ],
+            "state": "found",
+            "valid": true,
+            "value": "EU-2087"
+          },
+          "subtotal": {
+            "candidate": null,
+            "candidate_quote": null,
+            "ocr_evidence": [],
+            "proposal_value": "255.50",
+            "quote": "255.50",
+            "required": false,
+            "review_score": {
+              "calibrated": false,
+              "components": {
+                "label_support": 0.15,
+                "ocr_support": 0,
+                "source_match": 0.45,
+                "supported_format": 0.15
+              },
+              "forced_review": false,
+              "ocr_recognition": null,
+              "value": 0.75
+            },
+            "span": {
+              "end": 113,
+              "start": 107
+            },
+            "spans": [
+              {
+                "end": 113,
+                "start": 107
+              }
+            ],
+            "state": "found",
+            "valid": true,
+            "value": "255.50"
+          },
+          "tax": {
+            "candidate": null,
+            "candidate_quote": null,
+            "ocr_evidence": [],
+            "proposal_value": "51.10",
+            "quote": "51.10",
+            "required": false,
+            "review_score": {
+              "calibrated": false,
+              "components": {
+                "label_support": 0.15,
+                "ocr_support": 0,
+                "source_match": 0.45,
+                "supported_format": 0.15
+              },
+              "forced_review": false,
+              "ocr_recognition": null,
+              "value": 0.75
+            },
+            "span": {
+              "end": 124,
+              "start": 119
+            },
+            "spans": [
+              {
+                "end": 124,
+                "start": 119
+              }
+            ],
+            "state": "found",
+            "valid": true,
+            "value": "51.10"
+          },
+          "tip": {
+            "candidate": null,
+            "candidate_quote": null,
+            "ocr_evidence": [],
+            "proposal_value": null,
+            "quote": null,
+            "required": false,
+            "review_score": {
+              "calibrated": false,
+              "components": {
+                "label_support": 0,
+                "ocr_support": 0,
+                "source_match": 0,
+                "supported_format": 0
+              },
+              "forced_review": false,
+              "ocr_recognition": null,
+              "value": 0
+            },
+            "span": null,
+            "spans": [],
+            "state": "not_present",
+            "valid": false,
+            "value": null
+          },
+          "total": {
+            "candidate": null,
+            "candidate_quote": null,
+            "ocr_evidence": [],
+            "proposal_value": "306.60",
+            "quote": "306.60",
+            "required": true,
+            "review_score": {
+              "calibrated": false,
+              "components": {
+                "label_support": 0.15,
+                "ocr_support": 0,
+                "source_match": 0.45,
+                "supported_format": 0.15
+              },
+              "forced_review": false,
+              "ocr_recognition": null,
+              "value": 0.75
+            },
+            "span": {
+              "end": 138,
+              "start": 132
+            },
+            "spans": [
+              {
+                "end": 138,
+                "start": 132
+              }
+            ],
+            "state": "found",
+            "valid": true,
+            "value": "306.60"
+          },
+          "transaction_time": {
+            "candidate": null,
+            "candidate_quote": null,
+            "ocr_evidence": [],
+            "proposal_value": "14:35:00",
+            "quote": "14:35:00",
+            "required": false,
+            "review_score": {
+              "calibrated": false,
+              "components": {
+                "label_support": 0.15,
+                "ocr_support": 0,
+                "source_match": 0.45,
+                "supported_format": 0.15
+              },
+              "forced_review": false,
+              "ocr_recognition": null,
+              "value": 0.75
+            },
+            "span": {
+              "end": 82,
+              "start": 74
+            },
+            "spans": [
+              {
+                "end": 82,
+                "start": 74
+              }
+            ],
+            "state": "found",
+            "valid": true,
+            "value": "14:35:00"
+          },
+          "vendor": {
+            "candidate": null,
+            "candidate_quote": null,
+            "ocr_evidence": [],
+            "proposal_value": "Juniper Studio",
+            "quote": "Juniper Studio",
+            "required": true,
+            "review_score": {
+              "calibrated": false,
+              "components": {
+                "label_support": 0.15,
+                "ocr_support": 0,
+                "source_match": 0.45,
+                "supported_format": 0.15
+              },
+              "forced_review": false,
+              "ocr_recognition": null,
+              "value": 0.75
+            },
+            "span": {
+              "end": 22,
+              "start": 8
+            },
+            "spans": [
+              {
+                "end": 22,
+                "start": 8
+              }
+            ],
+            "state": "found",
+            "valid": true,
+            "value": "Juniper Studio"
+          }
+        },
+        "image": {
+          "local_quality_issues": [],
+          "normalized_dimensions": [
+            1100,
+            1500
+          ],
+          "normalized_sha256": "4343fc8ac029f5715cd98c2e2b0610d3f22fe35e221d574c465ed7ac17716ded",
+          "original_dimensions": [
+            1100,
+            1500
+          ],
+          "original_sha256": "2316006cb7ea6f3765ac069c3e87544199a22d522f32bf4d4db58265d41682ba",
+          "pillow_version": "12.3.0",
+          "preprocessing": "orientation-rgb-jpeg-2000-v1"
+        },
+        "issues": [
+          {
+            "code": "missing_or_ambiguous",
+            "field": "base_amount"
+          },
+          {
+            "code": "missing_or_ambiguous",
+            "field": "tip"
+          },
+          {
+            "code": "image_evidence_needs_human_review",
+            "field": "document"
+          }
+        ],
+        "model": "qwen/qwen3.8-27b",
+        "policy": "Validation checks are not an authorization to pay.",
+        "provider": "groq",
+        "schema_version": "invoice-v2.0.2",
+        "score_policy": {
+          "calibrated": false,
+          "description": "Evidence support score, not probability of correctness. Image fields always remain reviewable.",
+          "threshold": 0.85,
+          "version": "evidence-score-v1"
+        },
+        "source_sha256": "2316006cb7ea6f3765ac069c3e87544199a22d522f32bf4d4db58265d41682ba",
+        "source_type": "image",
+        "transcript": "Vendor: Juniper Studio\nInvoice ID: EU-2087\nInvoice Date: 23/08/2026\nTime: 14:35:00\nCurrency: EUR\nSubtotal: 255.50\nTax: 51.10\nTotal: 306.60\n\nAuthored test document",
+        "transcript_sha256": "ab0d9b57050ca09954e465278463bef0726f8d6f9b6653887363100188cdd639"
+      }
+    },
+    {
+      "document": "payment_slip.png",
+      "job_key": "c22242c3783e0db70dc26cef7bea690b2c4bf0822379fd14e650b16d797a816d",
+      "status": "completed",
+      "attempts": 1,
+      "provider": "groq",
+      "error": null,
+      "extraction": {
+        "decision": "review",
+        "document_type": "payment_slip",
+        "document_type_basis": "rule_and_model",
+        "evidence_basis": "model_transcription",
+        "fields": {
+          "base_amount": {
+            "candidate": null,
+            "candidate_quote": null,
+            "ocr_evidence": [],
+            "proposal_value": "36.70",
+            "quote": "S$ 36.70",
+            "required": false,
+            "review_score": {
+              "calibrated": false,
+              "components": {
+                "label_support": 0.15,
+                "ocr_support": 0,
+                "source_match": 0.45,
+                "supported_format": 0.15
+              },
+              "forced_review": false,
+              "ocr_recognition": null,
+              "value": 0.75
+            },
+            "span": {
+              "end": 109,
+              "start": 101
+            },
+            "spans": [
+              {
+                "end": 109,
+                "start": 101
+              }
+            ],
+            "state": "found",
+            "valid": true,
+            "value": "36.70"
+          },
+          "currency": {
+            "candidate": null,
+            "candidate_quote": null,
+            "ocr_evidence": [],
+            "proposal_value": "SGD",
+            "quote": "S$",
+            "required": true,
+            "review_score": {
+              "calibrated": false,
+              "components": {
+                "label_support": 0,
+                "ocr_support": 0,
+                "source_match": 0.45,
+                "supported_format": 0.15
+              },
+              "forced_review": false,
+              "ocr_recognition": null,
+              "value": 0.6
+            },
+            "span": null,
+            "spans": [
+              {
+                "end": 103,
+                "start": 101
+              },
+              {
+                "end": 118,
+                "start": 116
+              },
+              {
+                "end": 129,
+                "start": 127
+              }
+            ],
+            "state": "found",
+            "valid": true,
+            "value": "SGD"
+          },
+          "invoice_date": {
+            "candidate": "17/08/25",
+            "candidate_quote": "17/08/25",
+            "ocr_evidence": [],
+            "proposal_value": "2025-08-17",
+            "quote": null,
+            "required": true,
+            "review_score": {
+              "calibrated": false,
+              "components": {
+                "label_support": 0,
+                "ocr_support": 0,
+                "source_match": 0.45,
+                "supported_format": 0.15
+              },
+              "forced_review": true,
+              "ocr_recognition": null,
+              "value": 0.49
+            },
+            "span": null,
+            "spans": [],
+            "state": "needs_review",
+            "valid": false,
+            "value": null
+          },
+          "invoice_id": {
+            "candidate": null,
+            "candidate_quote": null,
+            "ocr_evidence": [],
+            "proposal_value": "400731",
+            "quote": "INV:400731",
+            "required": true,
+            "review_score": {
+              "calibrated": false,
+              "components": {
+                "label_support": 0.15,
+                "ocr_support": 0,
+                "source_match": 0.45,
+                "supported_format": 0.15
+              },
+              "forced_review": false,
+              "ocr_recognition": null,
+              "value": 0.75
+            },
+            "span": {
+              "end": 72,
+              "start": 62
+            },
+            "spans": [
+              {
+                "end": 72,
+                "start": 62
+              }
+            ],
+            "state": "found",
+            "valid": true,
+            "value": "400731"
+          },
+          "subtotal": {
+            "candidate": null,
+            "candidate_quote": null,
+            "ocr_evidence": [],
+            "proposal_value": null,
+            "quote": null,
+            "required": false,
+            "review_score": {
+              "calibrated": false,
+              "components": {
+                "label_support": 0,
+                "ocr_support": 0,
+                "source_match": 0,
+                "supported_format": 0
+              },
+              "forced_review": false,
+              "ocr_recognition": null,
+              "value": 0
+            },
+            "span": null,
+            "spans": [],
+            "state": "not_present",
+            "valid": false,
+            "value": null
+          },
+          "tax": {
+            "candidate": null,
+            "candidate_quote": null,
+            "ocr_evidence": [],
+            "proposal_value": null,
+            "quote": null,
+            "required": false,
+            "review_score": {
+              "calibrated": false,
+              "components": {
+                "label_support": 0,
+                "ocr_support": 0,
+                "source_match": 0,
+                "supported_format": 0
+              },
+              "forced_review": false,
+              "ocr_recognition": null,
+              "value": 0
+            },
+            "span": null,
+            "spans": [],
+            "state": "not_present",
+            "valid": false,
+            "value": null
+          },
+          "tip": {
+            "candidate": null,
+            "candidate_quote": "TIP : S$",
+            "ocr_evidence": [],
+            "proposal_value": null,
+            "quote": null,
+            "required": false,
+            "review_score": {
+              "calibrated": false,
+              "components": {
+                "label_support": 0,
+                "ocr_support": 0,
+                "source_match": 0.45,
+                "supported_format": 0
+              },
+              "forced_review": false,
+              "ocr_recognition": null,
+              "value": 0
+            },
+            "span": null,
+            "spans": [],
+            "state": "not_present",
+            "valid": false,
+            "value": null
+          },
+          "total": {
+            "candidate": null,
+            "candidate_quote": "TOTAL : S$",
+            "ocr_evidence": [],
+            "proposal_value": null,
+            "quote": null,
+            "required": false,
+            "review_score": {
+              "calibrated": false,
+              "components": {
+                "label_support": 0,
+                "ocr_support": 0,
+                "source_match": 0.45,
+                "supported_format": 0
+              },
+              "forced_review": false,
+              "ocr_recognition": null,
+              "value": 0
+            },
+            "span": null,
+            "spans": [],
+            "state": "not_present",
+            "valid": false,
+            "value": null
+          },
+          "transaction_time": {
+            "candidate": null,
+            "candidate_quote": null,
+            "ocr_evidence": [],
+            "proposal_value": "21:13:04",
+            "quote": "21:13:04",
+            "required": false,
+            "review_score": {
+              "calibrated": false,
+              "components": {
+                "label_support": 0.15,
+                "ocr_support": 0,
+                "source_match": 0.45,
+                "supported_format": 0.15
+              },
+              "forced_review": false,
+              "ocr_recognition": null,
+              "value": 0.75
+            },
+            "span": {
+              "end": 48,
+              "start": 40
+            },
+            "spans": [
+              {
+                "end": 48,
+                "start": 40
+              }
+            ],
+            "state": "found",
+            "valid": true,
+            "value": "21:13:04"
+          },
+          "vendor": {
+            "candidate": null,
+            "candidate_quote": null,
+            "ocr_evidence": [],
+            "proposal_value": "EXAMPLE COFFEE HOUSE",
+            "quote": "EXAMPLE COFFEE HOUSE",
+            "required": true,
+            "review_score": {
+              "calibrated": false,
+              "components": {
+                "label_support": 0,
+                "ocr_support": 0,
+                "source_match": 0.45,
+                "supported_format": 0.15
+              },
+              "forced_review": false,
+              "ocr_recognition": null,
+              "value": 0.6
+            },
+            "span": {
+              "end": 20,
+              "start": 0
+            },
+            "spans": [
+              {
+                "end": 20,
+                "start": 0
+              }
+            ],
+            "state": "found",
+            "valid": true,
+            "value": "EXAMPLE COFFEE HOUSE"
+          }
+        },
+        "image": {
+          "local_quality_issues": [],
+          "normalized_dimensions": [
+            1100,
+            1500
+          ],
+          "normalized_sha256": "4d296446b0d604e0b9c9c2e3e7ce7c75915ccbb20e988ac75f25bfa84733b0e0",
+          "original_dimensions": [
+            1100,
+            1500
+          ],
+          "original_sha256": "e46d101c57fa673fe466f815dd18b2e4258bd656f746aa2f7b58220c05cf49d2",
+          "pillow_version": "12.3.0",
+          "preprocessing": "orientation-rgb-jpeg-2000-v1"
+        },
+        "issues": [
+          {
+            "code": "semantic_binding_needs_review",
+            "field": "vendor"
+          },
+          {
+            "code": "two_digit_year_assumption",
+            "field": "invoice_date"
+          },
+          {
+            "code": "semantic_binding_needs_review",
+            "field": "currency"
+          },
+          {
+            "code": "ambiguous_evidence_location",
+            "field": "currency"
+          },
+          {
+            "code": "missing_or_ambiguous",
+            "field": "subtotal"
+          },
+          {
+            "code": "missing_or_ambiguous",
+            "field": "tax"
+          },
+          {
+            "code": "missing_or_ambiguous",
+            "field": "total"
+          },
+          {
+            "code": "missing_or_ambiguous",
+            "field": "tip"
+          },
+          {
+            "code": "image_evidence_needs_human_review",
+            "field": "document"
+          }
+        ],
+        "model": "qwen/qwen3.8-27b",
+        "policy": "Validation checks are not an authorization to pay.",
+        "provider": "groq",
+        "schema_version": "invoice-v2.0.2",
+        "score_policy": {
+          "calibrated": false,
+          "description": "Evidence support score, not probability of correctness. Image fields always remain reviewable.",
+          "threshold": 0.85,
+          "version": "evidence-score-v1"
+        },
+        "source_sha256": "e46d101c57fa673fe466f815dd18b2e4258bd656f746aa2f7b58220c05cf49d2",
+        "source_type": "image",
+        "transcript": "EXAMPLE COFFEE HOUSE\nDATE/TIME:17/08/25 21:13:04\nTID:00000017 INV:400731\nCARD LABEL:AMEX\nSALE\nBASE : S$ 36.70\nTIP : S$\nTOTAL : S$\nCUSTOMER COPY\nAuthored test document",
+        "transcript_sha256": "6a72fbefcbab393f47a41947bd43c6ce5aca9c1c27219be734177dc37f77d3e6"
+      }
+    },
+    {
+      "document": "retail_sgd.png",
+      "job_key": "60ca0c9048919adef1def8c07e55b15fc561eebd2c02b28190ee193d35b75958",
+      "status": "completed",
+      "attempts": 1,
+      "provider": "groq",
+      "error": null,
+      "extraction": {
+        "decision": "review",
+        "document_type": "retail_receipt",
+        "document_type_basis": "rule_and_model",
+        "evidence_basis": "model_transcription",
+        "fields": {
+          "base_amount": {
+            "candidate": null,
+            "candidate_quote": null,
+            "ocr_evidence": [],
+            "proposal_value": null,
+            "quote": null,
+            "required": false,
+            "review_score": {
+              "calibrated": false,
+              "components": {
+                "label_support": 0,
+                "ocr_support": 0,
+                "source_match": 0,
+                "supported_format": 0
+              },
+              "forced_review": false,
+              "ocr_recognition": null,
+              "value": 0
+            },
+            "span": null,
+            "spans": [],
+            "state": "not_present",
+            "valid": false,
+            "value": null
+          },
+          "currency": {
+            "candidate": null,
+            "candidate_quote": null,
+            "ocr_evidence": [],
+            "proposal_value": "SGD",
+            "quote": "SGD",
+            "required": true,
+            "review_score": {
+              "calibrated": false,
+              "components": {
+                "label_support": 0.15,
+                "ocr_support": 0,
+                "source_match": 0.45,
+                "supported_format": 0.15
+              },
+              "forced_review": false,
+              "ocr_recognition": null,
+              "value": 0.75
+            },
+            "span": {
+              "end": 101,
+              "start": 98
+            },
+            "spans": [
+              {
+                "end": 101,
+                "start": 98
+              }
+            ],
+            "state": "found",
+            "valid": true,
+            "value": "SGD"
+          },
+          "invoice_date": {
+            "candidate": null,
+            "candidate_quote": null,
+            "ocr_evidence": [],
+            "proposal_value": "2026-08-22",
+            "quote": "2026-08-22",
+            "required": true,
+            "review_score": {
+              "calibrated": false,
+              "components": {
+                "label_support": 0.15,
+                "ocr_support": 0,
+                "source_match": 0.45,
+                "supported_format": 0.15
+              },
+              "forced_review": false,
+              "ocr_recognition": null,
+              "value": 0.75
+            },
+            "span": {
+              "end": 72,
+              "start": 62
+            },
+            "spans": [
+              {
+                "end": 72,
+                "start": 62
+              }
+            ],
+            "state": "found",
+            "valid": true,
+            "value": "2026-08-22"
+          },
+          "invoice_id": {
+            "candidate": null,
+            "candidate_quote": null,
+            "ocr_evidence": [],
+            "proposal_value": "RT-701",
+            "quote": "RT-701",
+            "required": true,
+            "review_score": {
+              "calibrated": false,
+              "components": {
+                "label_support": 0,
+                "ocr_support": 0,
+                "source_match": 0.45,
+                "supported_format": 0.15
+              },
+              "forced_review": false,
+              "ocr_recognition": null,
+              "value": 0.6
+            },
+            "span": {
+              "end": 55,
+              "start": 49
+            },
+            "spans": [
+              {
+                "end": 55,
+                "start": 49
+              }
+            ],
+            "state": "found",
+            "valid": true,
+            "value": "RT-701"
+          },
+          "subtotal": {
+            "candidate": null,
+            "candidate_quote": null,
+            "ocr_evidence": [],
+            "proposal_value": "12.00",
+            "quote": "12.00",
+            "required": false,
+            "review_score": {
+              "calibrated": false,
+              "components": {
+                "label_support": 0,
+                "ocr_support": 0,
+                "source_match": 0.45,
+                "supported_format": 0.15
+              },
+              "forced_review": false,
+              "ocr_recognition": null,
+              "value": 0.6
+            },
+            "span": {
+              "end": 159,
+              "start": 154
+            },
+            "spans": [
+              {
+                "end": 159,
+                "start": 154
+              }
+            ],
+            "state": "found",
+            "valid": true,
+            "value": "12.00"
+          },
+          "tax": {
+            "candidate": null,
+            "candidate_quote": null,
+            "ocr_evidence": [],
+            "proposal_value": "1.08",
+            "quote": "1.08",
+            "required": false,
+            "review_score": {
+              "calibrated": false,
+              "components": {
+                "label_support": 0.15,
+                "ocr_support": 0,
+                "source_match": 0.45,
+                "supported_format": 0.15
+              },
+              "forced_review": false,
+              "ocr_recognition": null,
+              "value": 0.75
+            },
+            "span": {
+              "end": 169,
+              "start": 165
+            },
+            "spans": [
+              {
+                "end": 169,
+                "start": 165
+              }
+            ],
+            "state": "found",
+            "valid": true,
+            "value": "1.08"
+          },
+          "tip": {
+            "candidate": null,
+            "candidate_quote": null,
+            "ocr_evidence": [],
+            "proposal_value": null,
+            "quote": null,
+            "required": false,
+            "review_score": {
+              "calibrated": false,
+              "components": {
+                "label_support": 0,
+                "ocr_support": 0,
+                "source_match": 0,
+                "supported_format": 0
+              },
+              "forced_review": false,
+              "ocr_recognition": null,
+              "value": 0
+            },
+            "span": null,
+            "spans": [],
+            "state": "not_present",
+            "valid": false,
+            "value": null
+          },
+          "total": {
+            "candidate": null,
+            "candidate_quote": null,
+            "ocr_evidence": [],
+            "proposal_value": "13.08",
+            "quote": "13.08",
+            "required": true,
+            "review_score": {
+              "calibrated": false,
+              "components": {
+                "label_support": 0.15,
+                "ocr_support": 0,
+                "source_match": 0.45,
+                "supported_format": 0.15
+              },
+              "forced_review": false,
+              "ocr_recognition": null,
+              "value": 0.75
+            },
+            "span": null,
+            "spans": [
+              {
+                "end": 122,
+                "start": 117
+              },
+              {
+                "end": 187,
+                "start": 182
+              }
+            ],
+            "state": "found",
+            "valid": true,
+            "value": "13.08"
+          },
+          "transaction_time": {
+            "candidate": null,
+            "candidate_quote": null,
+            "ocr_evidence": [],
+            "proposal_value": "09:12:41",
+            "quote": "09:12:41",
+            "required": false,
+            "review_score": {
+              "calibrated": false,
+              "components": {
+                "label_support": 0.15,
+                "ocr_support": 0,
+                "source_match": 0.45,
+                "supported_format": 0.15
+              },
+              "forced_review": false,
+              "ocr_recognition": null,
+              "value": 0.75
+            },
+            "span": {
+              "end": 87,
+              "start": 79
+            },
+            "spans": [
+              {
+                "end": 87,
+                "start": 79
+              }
+            ],
+            "state": "found",
+            "valid": true,
+            "value": "09:12:41"
+          },
+          "vendor": {
+            "candidate": null,
+            "candidate_quote": null,
+            "ocr_evidence": [],
+            "proposal_value": "HARBOR PHARMACY",
+            "quote": "HARBOR PHARMACY",
+            "required": true,
+            "review_score": {
+              "calibrated": false,
+              "components": {
+                "label_support": 0,
+                "ocr_support": 0,
+                "source_match": 0.45,
+                "supported_format": 0.15
+              },
+              "forced_review": false,
+              "ocr_recognition": null,
+              "value": 0.6
+            },
+            "span": {
+              "end": 15,
+              "start": 0
+            },
+            "spans": [
+              {
+                "end": 15,
+                "start": 0
+              }
+            ],
+            "state": "found",
+            "valid": true,
+            "value": "HARBOR PHARMACY"
+          }
+        },
+        "image": {
+          "local_quality_issues": [],
+          "normalized_dimensions": [
+            1100,
+            1500
+          ],
+          "normalized_sha256": "402d19398c8f259132865b80233f6f1c9789471b3a22fcdb070fe10f34e873c9",
+          "original_dimensions": [
+            1100,
+            1500
+          ],
+          "original_sha256": "4c6bb55143fb4e6316ef419fb18c741ecd9cd32db7a7bcb214bc9bdc2d7c06ee",
+          "pillow_version": "12.3.0",
+          "preprocessing": "orientation-rgb-jpeg-2000-v1"
+        },
+        "issues": [
+          {
+            "code": "semantic_binding_needs_review",
+            "field": "invoice_id"
+          },
+          {
+            "code": "semantic_binding_needs_review",
+            "field": "vendor"
+          },
+          {
+            "code": "semantic_binding_needs_review",
+            "field": "subtotal"
+          },
+          {
+            "code": "ambiguous_evidence_location",
+            "field": "total"
+          },
+          {
+            "code": "missing_or_ambiguous",
+            "field": "base_amount"
+          },
+          {
+            "code": "missing_or_ambiguous",
+            "field": "tip"
+          },
+          {
+            "code": "image_evidence_needs_human_review",
+            "field": "document"
+          }
+        ],
+        "model": "qwen/qwen3.8-27b",
+        "policy": "Validation checks are not an authorization to pay.",
+        "provider": "groq",
+        "schema_version": "invoice-v2.0.2",
+        "score_policy": {
+          "calibrated": false,
+          "description": "Evidence support score, not probability of correctness. Image fields always remain reviewable.",
+          "threshold": 0.85,
+          "version": "evidence-score-v1"
+        },
+        "source_sha256": "4c6bb55143fb4e6316ef419fb18c741ecd9cd32db7a7bcb214bc9bdc2d7c06ee",
+        "source_type": "image",
+        "transcript": "HARBOR PHARMACY\nCustomer Receipt\nReceipt Number: RT-701\nDate: 2026-08-22\nTime: 09:12:41\nCurrency: SGD\nProduct total: 13.08\nTax summary\nAmount before tax: 12.00\nTax: 1.08\nTotal Sale: 13.08\nAuthored test document",
+        "transcript_sha256": "897a87d5b11864acc53b95c6c8b7d5bae6daccf33afb2da6df13dbc64dfd5eac"
+      }
+    }
+  ]
+}

@@ -14,6 +14,7 @@ from http.server import HTTPServer
 from unittest.mock import patch
 
 from docintel.core import baseline
+from docintel.documents import optional_fields
 from docintel.pipeline import run
 from docintel.providers import Groq, ProviderError
 from docintel.server import handler
@@ -29,7 +30,7 @@ class FakeVision:
 
     def extract_image(self, prepared):
         self.calls += 1
-        return {"transcript": TEXT, "fields": baseline(TEXT), "quality_issues": []}
+        return {"transcript": TEXT, "document_type":"invoice", "additional_fields":optional_fields(TEXT), "fields": baseline(TEXT), "quality_issues": []}
 
 
 def image_bytes(size=(800, 1000), color="white", format="PNG", **kwargs):

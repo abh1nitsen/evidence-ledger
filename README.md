@@ -6,20 +6,20 @@ Built by [Abhinit Sen](https://github.com/abh1nitsen). This portfolio project de
 
 An invoice with `Subtotal: 1200.00`, `Tax: 96.00`, and `Total: 1300.00` produces structured fields plus an `arithmetic_mismatch` review reason. An invented vendor with no source quote is discarded. A crashed batch resumes from its SQLite checkpoints.
 
-![Invoice photo upload with live Groq extraction and review](docs/images/receipt-reader.png)
+![Invoice photo upload with live Groq extraction and review](docs/images/review-workflow.jpg)
 
 ## What is implemented
 
-- Seven fields: invoice ID, vendor, date, currency, subtotal, tax, total.
+- Seven common fields plus optional transaction time, base amount and tip, with invoice/retail-receipt/payment-slip roles.
 - An offline label-based baseline, optional OpenAI text extraction, and Groq text/vision extraction.
 - Invoice photo upload (JPEG, PNG, WebP), orientation correction, metadata removal, bounded image preparation, and conservative image review.
 - Exact source quotes, character spans, content fingerprints, semantic label checks, and decimal arithmetic validation.
-- Human-review decisions for missing/ambiguous values, unsupported formats, conflicting labels, and unlabelled AI interpretations.
+- Visible suggestions with uncalibrated evidence scores and durable Accept / Reject / Edit decisions; source, label and format conflicts remain explicit.
 - Transactional per-document checkpoints, process locking, content/configuration-aware caching, atomic JSON exports, and bounded network retries.
 - A local review UI with source highlighting, example invoices, JSON download, and the exported batch ledger.
 - Authored synthetic data, regression tests, evaluation reports, and Windows/Linux CI.
 
-**Prototype boundary:** input is UTF-8 `.txt` or a single JPEG/PNG/WebP invoice image. Groq vision transcribes photographed/scanned invoices and extracts fields. PDF parsing, HEIC/TIFF, line items, reviewer workflow persistence, ERP integration, and payment execution are not implemented. The offline baseline is deterministic rules, not a trained AI model. There is no hidden AI fallback.
+**Prototype boundary:** input is UTF-8 `.txt` or a single JPEG/PNG/WebP invoice image. Groq vision transcribes photographed/scanned invoices and extracts fields. PDF parsing, HEIC/TIFF, line items, ERP integration, and payment execution are not implemented. The offline baseline is deterministic rules, not a trained AI model. There is no hidden AI fallback.
 
 ## Run in five minutes
 
@@ -131,4 +131,27 @@ MIT licensed. Read [CONTRIBUTING.md](CONTRIBUTING.md) to extend providers or doc
 
 ## Using the receipt reader
 
-Choose a photo, click **Read receipt**, then compare the merchant, date, total and seven detailed fields with your original. **Enlarge photo** opens a larger view; **Show supporting text** reveals evidence, and **Locate in reading** highlights matching transcription characters. **Not confirmed** is an abstention, not a zero. Rejected model suggestions remain separate from usable values. A successful reading still needs human confirmation; the yellow notice is not an API failure. Currency is independent of amounts: `$14.09` can become `14.09` while the currency stays unknown. Download JSON when ready. Text examples and the sample batch ledger are secondary views. See [the UI walkthrough](docs/UI_GUIDE.md).
+Choose a photo, click **Read receipt**, then compare the merchant, date, total and seven detailed fields with your original. **Enlarge photo** opens a larger view; **Evidence & checks** reveals evidence, and **Locate in reading** highlights matching transcription characters. **Not confirmed** is an abstention, not a zero. Rejected model suggestions remain separate from usable values. A successful reading still needs human confirmation; the yellow notice is not an API failure. Currency is independent of amounts: `$14.09` can become `14.09` while the currency stays unknown. Download JSON when ready. Text examples and the sample batch ledger are secondary views. See [the UI walkthrough](docs/UI_GUIDE.md).
+
+## Independent OCR and saved human review
+
+```sh
+python -m pip install -e ".[ocr]"
+# Set GROQ_API_KEY in your environment; never paste it into source or the browser.
+python -m docintel serve --port 8765 --ocr paddle --review-threshold 0.85
+```
+
+PaddleOCR runs locally on CPU with pinned PP-OCRv5 mobile detection/recognition models; Groq interprets field roles using the photo and independent OCR text. The first OCR run downloads weights and takes longer. Model files and OCR caches stay under ignored `runs/ocr/`. No automatic fallback hides OCR failures; omit `--ocr paddle` to explicitly use Groq-only extraction.
+
+The evidence score is **uncalibrated**, not an accuracy percentage. The configurable 0.85 threshold is provisional and only highlights review needs; it never auto-approves image results. Conflicts force review regardless of score. **Accept**, **Reject** and **Edit** save separate human decisions while preserving the original AI output. **Resume a saved reading** restores them after restart. Re-upload the original photo to inspect OCR crops, because original uploads are not retained. Download JSON includes `effective_fields`, original candidates, scores and decision history. A bare `$` is ambiguous; explicit `S$` maps to SGD. Two-digit dates propose a century but require confirmation. A payment slip's BASE amount stays separate when TOTAL is blank.
+
+See [OCR and review details](docs/OCR_AND_REVIEW.md) and [the validation record](docs/VALIDATION.md). To reproduce the layout comparison:
+
+```sh
+python scripts/benchmark_documents.py --ocr none --db runs/groq-diversity.sqlite --output runs/groq-diversity.json
+python scripts/benchmark_documents.py --ocr paddle --db runs/hybrid-diversity.sqlite --output runs/hybrid-diversity.json
+```
+
+The three authored invoice, retail and payment-slip layouts measure **proposed** fields and absent-field behavior separately. These are regression examples, not a real-photo generalisation benchmark or confidence calibration dataset.
+
+![Saved corrections preserve the original suggestion](docs/images/review-controls.jpg)

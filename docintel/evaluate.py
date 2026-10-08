@@ -68,3 +68,29 @@ def evaluate_images(dataset, provider, db, output):
             "unsafe_validations": sum(item.get("extraction", {}).get("decision") == "validated" for item in batch["documents"]),
             "extraction_failures": failures, "processed": batch["processed"], "skipped": batch["skipped"],
             "cases": details, "limitation": "Rendered invoices with simulated shadows/angle, not real natural-light photographs."}
+
+
+def evaluate_documents(dataset,provider,db,output):
+    """Score ten proposed fields and document roles; never equate proposals with approval."""
+    import time
+    dataset=Path(dataset);gold=json.loads((dataset/'gold.json').read_text(encoding='utf-8'))
+    started=time.monotonic();batch=run(dataset,db,output,provider)
+    indexed={r['document']:r for r in batch['documents']}
+    details=[];correct=total=printed_correct=printed_total=absent_correct=absent_total=types=failures=0
+    for case in gold:
+        record=indexed.get(case['document'],{});extraction=record.get('extraction')
+        proposals={k:extraction['fields'].get(k,{}).get('proposal_value') for k in case['proposals']} if extraction else {}
+        count=0
+        for key,expected in case['proposals'].items():
+            matched=bool(extraction) and proposals.get(key)==expected
+            count+=matched;total+=1
+            if expected is None:absent_total+=1;absent_correct+=matched
+            else:printed_total+=1;printed_correct+=matched
+        correct+=count;type_match=bool(extraction) and extraction.get('document_type')==case['document_type'];types+=type_match
+        failures+=not bool(extraction)
+        details.append({'document':case['document'],'document_type':extraction.get('document_type') if extraction else None,'type_correct':type_match,'proposals':proposals,'correct_fields':count,'error':record.get('error')})
+    return {'dataset':'authored-document-diversity-v1','provider':provider.name,'model':provider.model,'provider_identity':provider.image_identity,
+        'documents':len(gold),'proposed_field_exact_match':correct/total,'printed_field_match':printed_correct/printed_total,
+        'absent_field_match':absent_correct/absent_total,'document_type_accuracy':types/len(gold),'extraction_failures':failures,
+        'processed':batch['processed'],'skipped':batch['skipped'],'elapsed_seconds':round(time.monotonic()-started,3),'cases':details,
+        'limitation':'Three authored layouts; not real-photo generalisation or calibrated confidence. Proposed dates with two-digit years still require human confirmation.'}

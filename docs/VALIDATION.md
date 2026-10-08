@@ -1,5 +1,16 @@
 # Validation record
 
+## Version 0.4 independent OCR and saved review
+
+Verified on 8 October 2026 with Python 3.12.10, Pillow 12.3.0, PaddleOCR 3.7.0, PaddlePaddle 3.3.1 and PaddleX 3.7.2 on Windows CPU. **78 automated tests passed**, including labelled identifiers/currency markers, century confirmation, split date/time OCR lines, blank total versus base roles, OCR coordinate/score validation and timeout/no-fallback behavior, cache reuse, immutable originals, human arithmetic checks, optimistic review revisions, HTTP review/export and restoration. Core offline evaluation remains 112/112 fields and 16/16 expected decisions.
+
+Both live Groq-only and PaddleOCR+Groq runs matched **22/22 printed-field proposals**, **8/8 absent fields**, and **3/3 document types** on the independently authored invoice, retail and payment-slip layouts. Reports are `reports/groq-document-diversity.json` and `reports/hybrid-document-diversity.json`, with synthetic-only batch details. Observed single-run elapsed time was 46.078 seconds and 50.516 seconds respectively, including preprocessing/provider time. The hybrid run reused independently cached OCR results; these are warm-cache observations, not a cold-start latency comparison. Both reports use the final `invoice-v2.0.2` rules and prompt. This small benchmark shows no accuracy advantage for either path and does not estimate production accuracy or latency. Confidence remains uncalibrated with a provisional threshold.
+
+A private natural-light payment slip produced six proposed fields, including identifier, proposed century/date, transaction time, currency and base amount. Its blank TOTAL and absent tax remain unfilled. Independent OCR detected 54 regions; currency still needed review because the OCR did not preserve the literal S$ marker reliably. A second private retail photo produced seven proposals, including a previously discarded pre-tax amount and a separately normalized time; its bare dollar currency remains unconfirmed. These two cases are qualitative debugging, not a real-photo accuracy dataset. No private photo, identifiers, transcript, crops or screenshot is committed.
+
+Browser verification exercised independent OCR crops, Accept/Reject/Edit on synthetic data, download of effective fields and original suggestions, and saved-reading recovery. The public screenshot uses synthetic data. Review status does not imply payment approval.
+
+
 ## Version 0.3 receipt usability
 
 Verified 8 October 2026: **59 automated tests passed**. Added coverage for currency-prefixed receipt amounts, unambiguous numeric dates, repeated evidence with retained values, and separation of rejected suggestions. Offline evaluation remains 112/112 field matches and 16/16 expected decisions. A fresh live Groq run of all four synthetic image fixtures matched 28/28 fields and 4/4 review decisions with zero extraction failures. The published smoke reports now correspond to schema `invoice-v1.2`.

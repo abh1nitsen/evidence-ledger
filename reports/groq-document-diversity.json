@@ -1,0 +1,75 @@
+{
+  "dataset": "authored-document-diversity-v1",
+  "provider": "groq",
+  "model": "qwen/qwen3.8-27b",
+  "provider_identity": "d58a778b9a9acfac31cc3ed0c40b24dcafd52c59bab190b0aae1f1308e71988a",
+  "documents": 3,
+  "proposed_field_exact_match": 1.0,
+  "printed_field_match": 1.0,
+  "absent_field_match": 1.0,
+  "document_type_accuracy": 1.0,
+  "extraction_failures": 0,
+  "processed": 3,
+  "skipped": 0,
+  "elapsed_seconds": 46.078,
+  "cases": [
+    {
+      "document": "invoice_eur.png",
+      "document_type": "invoice",
+      "type_correct": true,
+      "proposals": {
+        "vendor": "Juniper Studio",
+        "invoice_id": "EU-2087",
+        "invoice_date": "2026-08-23",
+        "transaction_time": "14:35:00",
+        "currency": "EUR",
+        "subtotal": "255.50",
+        "tax": "51.10",
+        "base_amount": null,
+        "tip": null,
+        "total": "306.60"
+      },
+      "correct_fields": 10,
+      "error": null
+    },
+    {
+      "document": "retail_sgd.png",
+      "document_type": "retail_receipt",
+      "type_correct": true,
+      "proposals": {
+        "vendor": "HARBOR PHARMACY",
+        "invoice_id": "RT-701",
+        "invoice_date": "2026-08-22",
+        "transaction_time": "09:12:41",
+        "currency": "SGD",
+        "subtotal": "12.00",
+        "tax": "1.08",
+        "base_amount": null,
+        "tip": null,
+        "total": "13.08"
+      },
+      "correct_fields": 10,
+      "error": null
+    },
+    {
+      "document": "payment_slip.png",
+      "document_type": "payment_slip",
+      "type_correct": true,
+      "proposals": {
+        "vendor": "EXAMPLE COFFEE HOUSE",
+        "invoice_id": "400731",
+        "invoice_date": "2025-08-17",
+        "transaction_time": "21:13:04",
+        "currency": "SGD",
+        "subtotal": null,
+        "tax": null,
+        "base_amount": "36.70",
+        "tip": null,
+        "total": null
+      },
+      "correct_fields": 10,
+      "error": null
+    }
+  ],
+  "limitation": "Three authored layouts; not real-photo generalisation or calibrated confidence. Proposed dates with two-digit years still require human confirmation."
+}

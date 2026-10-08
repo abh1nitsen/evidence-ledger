@@ -97,3 +97,26 @@ class HTTPTests(unittest.TestCase):
             exported = json.load(response)
         self.assertEqual(exported["fields"], result["fields"])
         self.assertNotIn("download_url", exported)
+
+    def test_review_endpoint_persists_and_exports_human_decisions(self):
+        with self.post() as response: result=json.load(response)
+        body={'document_id':result['review']['document_id'],'field':'invoice_id','action':'edit','value':'CORRECTED-2','revision':0}
+        request=urllib.request.Request(self.base+'/api/review',data=json.dumps(body).encode(),headers={'Content-Type':'application/json','Origin':self.base})
+        with urllib.request.urlopen(request,timeout=3) as response: reviewed=json.load(response)
+        self.assertEqual(reviewed['effective_fields']['invoice_id'],'CORRECTED-2')
+        self.assertEqual(reviewed['fields']['invoice_id']['value'],'A-1')
+        with urllib.request.urlopen(self.base+reviewed['download_url'],timeout=3) as response: exported=json.load(response)
+        self.assertEqual(exported['review']['revision'],1)
+        self.assertEqual(exported['fields']['invoice_id']['human_review']['action'],'edit')
+        with self.post() as response: restored=json.load(response)
+        self.assertEqual(restored['effective_fields']['invoice_id'],'CORRECTED-2')
+        with self.assertRaises(urllib.error.HTTPError) as error: urllib.request.urlopen(request,timeout=3)
+        self.assertEqual(error.exception.code,409)
+
+    def test_review_foreign_origin_and_invalid_candidate_rejected(self):
+        with self.post(TEXT.replace('Currency: USD\n','')) as response: result=json.load(response)
+        body={'document_id':result['review']['document_id'],'field':'currency','action':'accept','value':None,'revision':0}
+        for origin,expected in ((self.base,400),('https://untrusted.example',403)):
+            request=urllib.request.Request(self.base+'/api/review',data=json.dumps(body).encode(),headers={'Content-Type':'application/json','Origin':origin})
+            with self.assertRaises(urllib.error.HTTPError) as error: urllib.request.urlopen(request,timeout=3)
+            self.assertEqual(error.exception.code,expected)

@@ -101,15 +101,17 @@ def run(input_dir, db, output, provider, retry_failed=False, stop_after=None, af
                     with path.open("rb") as stream:
                         raw = stream.read(MAX_IMAGE_BYTES + 1)
                     prepared = prepare_image(raw)
+                    if hasattr(provider,"prepare_image"):
+                        prepared=provider.prepare_image(prepared)
                     content_hash = prepared["metadata"]["original_sha256"]
                     identity = getattr(provider, "image_identity", provider.identity) + prepared["metadata"]["pillow_version"]
                 else:
                     text = read_document(path)
                     content_hash, identity = digest(text), provider.identity
-            except (OSError, ValueError) as exc:
+            except (OSError, ValueError, ProviderError) as exc:
                 # Input failures are evaluated again on resume; content may be repaired.
                 records.append({"document": path.name, "status": "failed",
-                                "error": "invalid_input", "detail": type(exc).__name__})
+                                "error": exc.code if isinstance(exc,ProviderError) else "invalid_input", "detail": type(exc).__name__})
                 continue
             key = digest(content_hash + identity + VERSION)
             previous = con.execute("SELECT status,attempts,result,error FROM jobs WHERE job_key=?", (key,)).fetchone()

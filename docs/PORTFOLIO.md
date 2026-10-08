@@ -31,3 +31,5 @@ This account already contains projects in safety/red teaming, RAG evaluation, th
 | Private Signal | Customer analytics | Privacy-preserving data preparation | Utility/privacy tradeoffs, explicit threat model |
 
 Do not claim these projects exist until built. This repository can serve as the implementation and documentation standard for subsequent work.
+
+Version 0.4 deepens the same engineering aspect through independent pretrained OCR, document-role-aware extraction, transparent uncalibrated review scores and durable human corrections. The key lesson is separating recognition, semantic assignment, validation and acceptance. Three authored layouts and two private debugging cases are useful regressions; confidence calibration and merchant-disjoint generalisation remain future evidence requirements.

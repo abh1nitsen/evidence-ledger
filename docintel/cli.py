@@ -24,22 +24,29 @@ def main(argv=None):
     evaluation.add_argument("--db", default="runs/image-evaluation.sqlite")
     for command in (batch, evaluation):
         command.add_argument("--provider", choices=["baseline", "openai", "groq"], default="baseline")
+        command.add_argument("--ocr", choices=["none","paddle"], default="none", help="Independent CPU OCR before Groq vision")
         command.add_argument("--model", help="Required for openai; choose a structured-output compatible model")
     serve = sub.add_parser("serve", help="Local offline demo and batch-report viewer")
     serve.add_argument("--port", type=int, default=8765)
     serve.add_argument("--report", default="runs/report.json")
     serve.add_argument("--vision-model", default="qwen/qwen3.8-27b")
+    serve.add_argument("--review-threshold",type=float,default=0.85)
+    serve.add_argument("--ocr",choices=["none","paddle"],default="none")
     serve.add_argument("--image-db", default="runs/uploads.sqlite")
     args = parser.parse_args(argv)
     try:
         if args.command == "serve":
             from .server import serve as start
-            start(args.port, Path(args.report), args.vision_model, Path(args.image_db))
+            start(args.port, Path(args.report), args.vision_model, Path(args.image_db),args.ocr,args.review_threshold)
             return 0
         if args.provider == "openai" and not args.model:
             raise ValueError("--model is required for openai mode")
         provider = {"baseline": lambda: Baseline(), "openai": lambda: OpenAI(args.model),
                     "groq": lambda: Groq(args.model or "qwen/qwen3.8-27b")}[args.provider]()
+        if args.ocr=="paddle":
+            if args.provider!="groq": raise ValueError("OCR fusion requires Groq")
+            from .ocr import Hybrid
+            provider=Hybrid(provider)
         if args.command == "run":
             report = run(args.input, args.db, args.output, provider, args.retry_failed, args.stop_after)
             failed = sum(x["status"] == "failed" for x in report["documents"])

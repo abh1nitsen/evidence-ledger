@@ -39,3 +39,9 @@ Different provider/model/prompt/schema identities create new jobs automatically.
 ## Reset and backups
 
 For a fresh experiment, select a new database path instead of deleting working state. For archival backups, stop the writer and copy the database plus its companion WAL/SHM files if present, or use SQLite's backup API. Never copy only the main file from an active WAL database and assume it contains every committed result. Store private documents/checkpoints/reports outside the public repository; encrypt and protect them according to your environment.
+
+## OCR and review recovery
+
+Use `--ocr paddle` only after installing the optional OCR extra. Initial recognition downloads official model weights into `runs/ocr`; failures are explicit. For `ocr_timeout`, retry after checking CPU load; the worker deadline is 180 seconds. For `ocr_process_failed`, check the pinned runtime/model installation; choose Groq-only mode explicitly with no OCR flag if needed. OCR caches are keyed by content/configuration and verified against weight hashes.
+
+Preserve both the image checkpoint database and its sibling `<stem>-reviews.sqlite` when keeping human review history. Re-upload identical bytes or select **Resume a saved reading** after restart. Re-extraction under a changed schema/provider configuration creates a distinct review identity. HTTP 409 means another decision changed the revision; reload and retry rather than overwriting it. Machine evidence and original suggestions are immutable; corrections live in the decision history. Exports flag effective arithmetic mismatches.

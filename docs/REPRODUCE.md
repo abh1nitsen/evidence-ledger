@@ -46,3 +46,13 @@ Inspect the printed `remaining` field to distinguish a partial demo from a fully
 ## Reproducibility boundaries
 
 The deterministic baseline and synthetic fixture outputs reproduce offline. AI responses can differ between calls and model versions, incur cost, and depend on provider access. Use a fresh database for repeat model experiments; reusing a database measures cache behavior rather than fresh AI inference. Run both providers against the same independent gold labels and report separate results.
+
+## Version 0.4 OCR and review
+
+Install `python -m pip install -e ".[ocr]"`, set `GROQ_API_KEY`, and run `python -m docintel serve --ocr paddle --review-threshold 0.85`. Optional OCR was exercised locally on Windows/Python 3.12 with paddleocr 3.7.0, paddlepaddle 3.3.1 and paddlex 3.7.2. CI tests the core and mocked OCR contract without downloading weights. OCR initial setup needs network access for model weights; subsequent recognition runs locally. Library wheels and model compatibility on other platforms must be verified independently.
+
+Run `python scripts/generate_document_fixtures.py` to regenerate the three independently authored layouts, then use the benchmark commands in the README. Compare fresh checkpoint databases to measure inference, or reuse them to measure recovery/caching. Two-digit-year proposals are checked separately from usable machine values; human review is still required.
+
+Review decisions are stored next to the image database in `<image-db-stem>-reviews.sqlite`. Do not delete that file when retaining your reviews. Original photos are temporary; save them separately and re-upload or use **Resume a saved reading** to restore decisions. Keep private documents and exported review histories outside Git.
+
+The full tested OCR dependency snapshot is `requirements-ocr.lock.txt`. In a fresh Python 3.12 environment, use `python -m pip install -r requirements-ocr.lock.txt` to reproduce its pinned transitive package versions, then run the repository modules. This snapshot was tested on Windows; other platforms need compatible wheels and their own verification. Model weight hashes are recorded in extraction metadata.

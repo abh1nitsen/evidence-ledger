@@ -5,16 +5,19 @@ import hashlib
 import json
 import re
 
-VERSION = "invoice-v1.2"
+VERSION = "invoice-v2.0.2"
 FIELDS = ("invoice_id", "vendor", "invoice_date", "currency", "subtotal", "tax", "total")
 LABELS = {
-    "invoice_id": r"(?:Invoice (?:ID|Number|No\.?)|(?:Tax )?invoice/Receipt No\.?)",
+    "invoice_id": r"(?:(?:INV|Invoice (?:ID|Number|No\.?))|(?:Tax )?invoice/Receipt No\.?)",
     "vendor": r"(?:Vendor|Supplier)",
-    "invoice_date": r"(?:Invoice Date|Date)",
+    "invoice_date": r"(?:Invoice Date|Date/Time|Date)",
     "currency": r"Currency",
     "subtotal": r"Subtotal", "tax": r"Tax", "total": r"(?:Grand Total|Total Sale|Total)",
 }
-AMOUNTS = {"subtotal", "tax", "total"}
+EXTRA_FIELDS = ("transaction_time", "base_amount", "tip")
+LABELS.update({"transaction_time": r"(?:Time|Transaction Time|Date/Time)", "base_amount": r"Base", "tip": r"Tip"})
+AMOUNTS = {"subtotal", "tax", "total", "base_amount", "tip"}
+CURRENCY_MARKERS = {"S$": "SGD", "US$": "USD", "A$": "AUD", "C$": "CAD", "£": "GBP", "€": "EUR", "₹": "INR"}
 SCHEMA = {
     "type": "object", "additionalProperties": False,
     "properties": {name: {
@@ -34,9 +37,22 @@ def canonical(field, value):
     if not isinstance(value, str) or not value.strip():
         raise ValueError("empty value")
     value = value.strip()
+    # A quote may include its own explicit field label, never an unrelated label.
+    own_label = LABELS.get(field, r"(?!)")
+    if field == "invoice_id":
+        own_label = "(?:" + own_label + r"|INV|Receipt (?:No\.?|Number)|Bill (?:No\.?|Number))"
+    value = re.sub(r"^" + own_label + r"\s*:\s*", "", value, flags=re.I)
+    if field == "transaction_time":
+        match = re.fullmatch(r"(?:\d{1,2}[/-]\d{1,2}[/-](?:\d{2}|\d{4})\s+)?(\d{1,2}:\d{2}(?::\d{2})?\s*(?:AM|PM)?)", value, re.I)
+        if not match:
+            raise ValueError("unsupported time format")
+        clock = match.group(1).strip().upper()
+        pattern = "%I:%M:%S %p" if re.search(r"\d+:\d+:\d+.*(?:AM|PM)", clock) else "%I:%M %p" if re.search(r"AM|PM", clock) else "%H:%M:%S" if clock.count(":") == 2 else "%H:%M"
+        clock = re.sub(r"\s*(AM|PM)$", r" \1", clock)
+        return dt.datetime.strptime(clock, pattern).strftime("%H:%M:%S")
     if field in AMOUNTS:
         # Currency markers do not identify currency; that is validated separately.
-        value = re.sub(r"^(?:USD|SGD|EUR|GBP|INR|CAD|AUD|JPY|S\$|US\$|[$£€₹])\s*", "", value, flags=re.I)
+        value = re.sub(r"^(?:USD|SGD|EUR|GBP|INR|CAD|AUD|JPY|S\$|US\$|A\$|C\$|[$£€₹])\s*", "", value, flags=re.I)
         if not re.fullmatch(r"(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d{1,2})?", value):
             raise ValueError("unsupported amount format")
         amount = decimal.Decimal(value.replace(",", ""))
@@ -46,15 +62,18 @@ def canonical(field, value):
     if field == "invoice_date":
         if re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
             return dt.date.fromisoformat(value).isoformat()
-        match = re.fullmatch(r"(\d{1,2})[/-](\d{1,2})[/-](\d{4})(?:\s+\d{1,2}:\d{2}(?::\d{2})?\s*(?:AM|PM)?)?", value, re.I)
+        match = re.fullmatch(r"(\d{1,2})[/-](\d{1,2})[/-](\d{2}|\d{4})(?:\s+\d{1,2}:\d{2}(?::\d{2})?\s*(?:AM|PM)?)?", value, re.I)
         if match:
             first, second, year = map(int, match.groups())
+            if year < 100:
+                year += 2000
             if first > 12 and second <= 12:
                 return dt.date(year, second, first).isoformat()
             if second > 12 and first <= 12:
                 return dt.date(year, first, second).isoformat()
         raise ValueError("ambiguous_or_unsupported_date")
     if field == "currency":
+        value = CURRENCY_MARKERS.get(value.upper(), value)
         if value.upper() not in {"USD", "SGD", "EUR", "GBP", "INR", "CAD", "AUD", "JPY"}:
             raise ValueError("unsupported currency")
         return value.upper()
@@ -65,7 +84,8 @@ def canonical(field, value):
 
 def baseline(text):
     result = {}
-    for field, label in LABELS.items():
+    for field in FIELDS:
+        label = LABELS[field]
         matches = list(re.finditer(r"^\s*" + label + r"\s*:\s*([^\r\n]+?)\s*$", text,
                                    flags=re.MULTILINE | re.IGNORECASE))
         # Ambiguous duplicate labels abstain, even when amounts happen to agree.
@@ -73,11 +93,11 @@ def baseline(text):
     return result
 
 
-def validate(text, proposed):
-    if not isinstance(proposed, dict) or set(proposed) != set(FIELDS):
+def validate(text, proposed, field_names=FIELDS):
+    if not isinstance(proposed, dict) or set(proposed) != set(field_names):
         raise ValueError("provider output has invalid field schema")
     fields, issues = {}, []
-    for field in FIELDS:
+    for field in field_names:
         entry = proposed[field]
         if not isinstance(entry, dict) or set(entry) != {"value", "quote"}:
             raise ValueError("provider output has invalid evidence schema")
@@ -93,17 +113,30 @@ def validate(text, proposed):
                 normalized = canonical(field, value)
                 if not quote or len(quote) > 500 or quote not in text:
                     raise ValueError("evidence_not_in_source")
-                # A quote must be the raw field value, not a broad passage containing it.
+                # A quote can be a raw value or its own label plus value, not an unrelated passage.
                 if canonical(field, quote) != normalized:
                     raise ValueError("evidence_value_mismatch")
                 labelled = list(re.finditer(r"^\s*" + LABELS[field] + r"\s*:\s*([^\r\n]+?)\s*$", text, re.M | re.I))
-                if labelled and (len(labelled) != 1 or canonical(field, labelled[0].group(1)) != normalized):
-                    raise ValueError("evidence_label_mismatch")
+                if field=="transaction_time":
+                    labelled=[m for m in labelled if re.search(r"\d{1,2}:\d{2}",m.group(1))]
+                if field=="invoice_id" and not labelled:
+                    labelled=list(re.finditer(r"(?<!\w)INV\s*:\s*([^\s]+)",text,re.I))
+                if labelled:
+                    if len(labelled)!=1:
+                        raise ValueError("evidence_label_mismatch")
+                    try:
+                        labelled_value=canonical(field,labelled[0].group(1))
+                    except ValueError:
+                        raise ValueError("evidence_label_mismatch") from None
+                    if labelled_value!=normalized:
+                        raise ValueError("evidence_label_mismatch")
                 if not labelled:
                     issues.append({"field": field, "code": "semantic_binding_needs_review"})
                 locations = list(re.finditer(r"(?<![\w.,-])" + re.escape(quote) + r"(?![\w.,-])", text))
                 if not locations:
                     raise ValueError("evidence_not_in_source")
+                if field == "invoice_date" and re.search(r"\b\d{1,2}[/-]\d{1,2}[/-]\d{2}\b", quote):
+                    raise ValueError("two_digit_year_assumption")
                 spans = [{"start": loc.start(), "end": loc.end()} for loc in locations[:32]]
                 if len(locations) != 1:
                     issues.append({"field": field, "code": "ambiguous_evidence_location"})
@@ -118,15 +151,16 @@ def validate(text, proposed):
                          "candidate_quote": quote if reason else None}
         if reason:
             issues.append({"field": field, "code": reason})
-    if all(fields[x]["valid"] for x in AMOUNTS):
-        numbers = {x: decimal.Decimal(fields[x]["value"]) for x in AMOUNTS}
+    if all(x in fields and fields[x]["valid"] for x in ("subtotal", "tax", "total")):
+        numbers = {x: decimal.Decimal(fields[x]["value"]) for x in ("subtotal", "tax", "total")}
         if numbers["subtotal"] + numbers["tax"] != numbers["total"]:
             issues.append({"field": "total", "code": "arithmetic_mismatch"})
     # Local diagnostics are intentionally conservative, not a complete injection detector.
     if re.search(r"ignore\s+(?:all\s+)?(?:previous|prior)|system\s*prompt|override\s+instructions", text, re.I):
         issues.append({"field": "document", "code": "instruction_like_content"})
     # Detect duplicate labelled values independently of the AI provider's interpretation.
-    for field, label in LABELS.items():
+    for field in field_names:
+        label = LABELS[field]
         if len(re.findall(r"^\s*" + label + r"\s*:", text, re.M | re.I)) > 1:
             issues.append({"field": field, "code": "duplicate_label"})
     return {"schema_version": VERSION, "source_sha256": digest(text), "fields": fields,
