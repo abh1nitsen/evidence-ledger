@@ -1,0 +1,58 @@
+[
+  {
+    "document": "01_clean.jpg",
+    "fields": {
+      "invoice_id": "INV-2026-041",
+      "vendor": "Northstar Office Supplies",
+      "invoice_date": "2026-10-01",
+      "currency": "USD",
+      "subtotal": "1200.00",
+      "tax": "96.00",
+      "total": "1296.00"
+    },
+    "decision": "review",
+    "slice": "render"
+  },
+  {
+    "document": "02_shadow.jpg",
+    "fields": {
+      "invoice_id": "INV-2026-041",
+      "vendor": "Northstar Office Supplies",
+      "invoice_date": "2026-10-01",
+      "currency": "USD",
+      "subtotal": "1200.00",
+      "tax": "96.00",
+      "total": "1296.00"
+    },
+    "decision": "review",
+    "slice": "simulated_shadow"
+  },
+  {
+    "document": "03_angled.jpg",
+    "fields": {
+      "invoice_id": "INV-2026-041",
+      "vendor": "Northstar Office Supplies",
+      "invoice_date": "2026-10-01",
+      "currency": "USD",
+      "subtotal": "1200.00",
+      "tax": "96.00",
+      "total": "1296.00"
+    },
+    "decision": "review",
+    "slice": "simulated_angle"
+  },
+  {
+    "document": "04_blank.png",
+    "fields": {
+      "invoice_id": null,
+      "vendor": null,
+      "invoice_date": null,
+      "currency": null,
+      "subtotal": null,
+      "tax": null,
+      "total": null
+    },
+    "decision": "review",
+    "slice": "non_invoice"
+  }
+]

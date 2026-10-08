@@ -36,4 +36,4 @@ The synthetic evaluation gate is intentionally strict and may return exit code 2
 4. Measure field precision/recall, abstention coverage, unsafe acceptance, document completeness, latency, and per-document cost. Do not infer calibrated confidence from a model's self-reported score.
 5. Freeze prompt/policy/model configuration before evaluating a held-out set; publish uncertainty and failures alongside averages.
 
-No live AI accuracy, latency, cost, confidence calibration, or production performance is claimed in this release.
+Version 0.2 adds a separately recorded live Groq image smoke test in `reports/groq-vision-smoke.json`. Run `python -m docintel evaluate --images --dataset data/images --provider groq` with the vision extra and a key. The clean render, simulated shadow/angle and blank-image results are scored against independently authored values. They are not real camera photos. The checkpointed batch output records failures and the summary never removes them from the denominator. No production accuracy, latency, cost or confidence-calibration result is claimed.

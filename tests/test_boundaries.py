@@ -88,3 +88,12 @@ class HTTPTests(unittest.TestCase):
             with urllib.request.urlopen(self.base + path, timeout=3) as response:
                 self.assertEqual(response.headers["X-Content-Type-Options"], "nosniff")
                 self.assertIn("frame-ancestors 'none'", response.headers["Content-Security-Policy"])
+
+    def test_json_download_is_an_attachment(self):
+        with self.post() as response:
+            result = json.load(response)
+        with urllib.request.urlopen(self.base + result["download_url"], timeout=3) as response:
+            self.assertIn("attachment", response.headers["Content-Disposition"])
+            exported = json.load(response)
+        self.assertEqual(exported["fields"], result["fields"])
+        self.assertNotIn("download_url", exported)

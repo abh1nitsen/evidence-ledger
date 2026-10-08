@@ -8,6 +8,7 @@ import tempfile
 
 from .core import VERSION, digest, stable_json, validate
 from .providers import ProviderError
+from .vision import IMAGE_SUFFIXES, MAX_IMAGE_BYTES, prepare_image, validate_image
 
 MAX_BYTES = 100_000
 
@@ -77,9 +78,9 @@ def run(input_dir, db, output, provider, retry_failed=False, stop_after=None, af
     input_dir, db = Path(input_dir), Path(db)
     if not input_dir.is_dir():
         raise ValueError("input directory does not exist")
-    paths = sorted(input_dir.glob("*.txt"))
+    paths = sorted(path for path in input_dir.iterdir() if path.suffix.lower() in {".txt"} | IMAGE_SUFFIXES and (path.is_file() or path.is_symlink()))
     if not paths:
-        raise ValueError("no .txt documents found")
+        raise ValueError("no supported documents found")
     if stop_after is not None and stop_after < 1:
         raise ValueError("stop_after must be positive")
     db.parent.mkdir(parents=True, exist_ok=True)
@@ -92,14 +93,25 @@ def run(input_dir, db, output, provider, retry_failed=False, stop_after=None, af
         con.commit()
         records, processed, skipped = [], 0, 0
         for path in paths:
+            is_image = path.suffix.lower() in IMAGE_SUFFIXES
             try:
-                text = read_document(path)
+                if is_image:
+                    if path.is_symlink():
+                        raise ValueError("symlink inputs unsupported")
+                    with path.open("rb") as stream:
+                        raw = stream.read(MAX_IMAGE_BYTES + 1)
+                    prepared = prepare_image(raw)
+                    content_hash = prepared["metadata"]["original_sha256"]
+                    identity = getattr(provider, "image_identity", provider.identity) + prepared["metadata"]["pillow_version"]
+                else:
+                    text = read_document(path)
+                    content_hash, identity = digest(text), provider.identity
             except (OSError, ValueError) as exc:
                 # Input failures are evaluated again on resume; content may be repaired.
                 records.append({"document": path.name, "status": "failed",
                                 "error": "invalid_input", "detail": type(exc).__name__})
                 continue
-            key = digest(digest(text) + provider.identity + VERSION)
+            key = digest(content_hash + identity + VERSION)
             previous = con.execute("SELECT status,attempts,result,error FROM jobs WHERE job_key=?", (key,)).fetchone()
             if previous and (previous[0] == "completed" or (previous[0] == "failed" and not retry_failed)):
                 skipped += 1
@@ -110,14 +122,20 @@ def run(input_dir, db, output, provider, retry_failed=False, stop_after=None, af
                 with con:
                     con.execute("INSERT OR REPLACE INTO jobs VALUES (?,?,?,?,?)", (key, "pending", attempts, None, None))
                 try:
-                    proposed = provider.extract(text)
-                    result = stable_json(validate(text, proposed))
+                    if is_image:
+                        if not getattr(provider, "supports_images", False):
+                            raise ProviderError("image input requires a vision provider")
+                        proposed = provider.extract_image(prepared)
+                        result = stable_json(validate_image(prepared, proposed, provider))
+                    else:
+                        proposed = provider.extract(text)
+                        result = stable_json(validate(text, proposed))
                     if after_extract:
                         after_extract()  # Fault injection used only by recovery tests.
                     status, error = "completed", None
                 except (ProviderError, ValueError) as exc:
                     status, result = "failed", None
-                    error = "provider_failure" if isinstance(exc, ProviderError) else "invalid_provider_schema"
+                    error = exc.code if isinstance(exc, ProviderError) else "invalid_provider_schema"
                 with con:
                     con.execute("UPDATE jobs SET status=?,result=?,error=? WHERE job_key=?", (status, result, error, key))
                 processed += 1

@@ -1,0 +1,84 @@
+{
+  "provider": "groq",
+  "model": "qwen/qwen3.8-27b",
+  "provider_identity": "109b8d435271a91db22b47043e2ef0c4d53c70d9b9971029c62c6253fdd9b2f0",
+  "dataset": "synthetic-image-smoke-v1",
+  "documents": 4,
+  "field_exact_match": 1.0,
+  "decision_accuracy": 1.0,
+  "unsafe_validations": 0,
+  "extraction_failures": 0,
+  "processed": 4,
+  "skipped": 0,
+  "cases": [
+    {
+      "document": "01_clean.jpg",
+      "slice": "render",
+      "actual": {
+        "invoice_id": "INV-2026-041",
+        "vendor": "Northstar Office Supplies",
+        "invoice_date": "2026-10-01",
+        "currency": "USD",
+        "subtotal": "1200.00",
+        "tax": "96.00",
+        "total": "1296.00"
+      },
+      "correct_fields": 7,
+      "decision_correct": true,
+      "error": null,
+      "image_sha256": "bd49d9bae86b7742f5a3154bfabce7e02139b0648510d1fd5b0a6ca91f3c4118"
+    },
+    {
+      "document": "02_shadow.jpg",
+      "slice": "simulated_shadow",
+      "actual": {
+        "invoice_id": "INV-2026-041",
+        "vendor": "Northstar Office Supplies",
+        "invoice_date": "2026-10-01",
+        "currency": "USD",
+        "subtotal": "1200.00",
+        "tax": "96.00",
+        "total": "1296.00"
+      },
+      "correct_fields": 7,
+      "decision_correct": true,
+      "error": null,
+      "image_sha256": "23c9ede32c43affd2ec14c72a5c5c338a776170beb65011bb5355fc964646a91"
+    },
+    {
+      "document": "03_angled.jpg",
+      "slice": "simulated_angle",
+      "actual": {
+        "invoice_id": "INV-2026-041",
+        "vendor": "Northstar Office Supplies",
+        "invoice_date": "2026-10-01",
+        "currency": "USD",
+        "subtotal": "1200.00",
+        "tax": "96.00",
+        "total": "1296.00"
+      },
+      "correct_fields": 7,
+      "decision_correct": true,
+      "error": null,
+      "image_sha256": "2b8e32a487adb8ca35968c0eca2e37aee20f74be588436a89cdddce4c75b3caf"
+    },
+    {
+      "document": "04_blank.png",
+      "slice": "non_invoice",
+      "actual": {
+        "invoice_id": null,
+        "vendor": null,
+        "invoice_date": null,
+        "currency": null,
+        "subtotal": null,
+        "tax": null,
+        "total": null
+      },
+      "correct_fields": 7,
+      "decision_correct": true,
+      "error": null,
+      "image_sha256": "259ddf6024b1a7e82b1a903eba508b5838a0ef78bddede644a2ca16076411300"
+    }
+  ],
+  "limitation": "Rendered invoices with simulated shadows/angle, not real natural-light photographs."
+}

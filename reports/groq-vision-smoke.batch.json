@@ -1,0 +1,468 @@
+{
+  "schema_version": "invoice-v1.1",
+  "provider": "groq",
+  "provider_identity": "e4acd394c2be17c85543e8325875f102ac32e5c731c8e98740482f449f30a2c4",
+  "processed": 4,
+  "skipped": 0,
+  "discovered": 4,
+  "remaining": 0,
+  "documents": [
+    {
+      "document": "01_clean.jpg",
+      "job_key": "fb6de3667bdcb3cf74035cb0d4eacb0a3c18252b3bcbc9a3c002f8cd4fcb6ecb",
+      "status": "completed",
+      "attempts": 1,
+      "provider": "groq",
+      "error": null,
+      "extraction": {
+        "decision": "review",
+        "evidence_basis": "model_transcription",
+        "fields": {
+          "currency": {
+            "quote": "USD",
+            "span": {
+              "end": 109,
+              "start": 106
+            },
+            "valid": true,
+            "value": "USD"
+          },
+          "invoice_date": {
+            "quote": "2026-10-01",
+            "span": {
+              "end": 94,
+              "start": 84
+            },
+            "valid": true,
+            "value": "2026-10-01"
+          },
+          "invoice_id": {
+            "quote": "INV-2026-041",
+            "span": {
+              "end": 68,
+              "start": 56
+            },
+            "valid": true,
+            "value": "INV-2026-041"
+          },
+          "subtotal": {
+            "quote": "1200.00",
+            "span": {
+              "end": 128,
+              "start": 121
+            },
+            "valid": true,
+            "value": "1200.00"
+          },
+          "tax": {
+            "quote": "96.00",
+            "span": {
+              "end": 140,
+              "start": 135
+            },
+            "valid": true,
+            "value": "96.00"
+          },
+          "total": {
+            "quote": "1296.00",
+            "span": {
+              "end": 156,
+              "start": 149
+            },
+            "valid": true,
+            "value": "1296.00"
+          },
+          "vendor": {
+            "quote": "Northstar Office Supplies",
+            "span": {
+              "end": 42,
+              "start": 17
+            },
+            "valid": true,
+            "value": "Northstar Office Supplies"
+          }
+        },
+        "image": {
+          "local_quality_issues": [],
+          "normalized_dimensions": [
+            1100,
+            1400
+          ],
+          "normalized_sha256": "9c5c014cdb8f8d15336cb8de07b196f0c98cd8756703e7890e78c0f644e9c41c",
+          "original_dimensions": [
+            1100,
+            1400
+          ],
+          "original_sha256": "bd49d9bae86b7742f5a3154bfabce7e02139b0648510d1fd5b0a6ca91f3c4118",
+          "pillow_version": "12.3.0",
+          "preprocessing": "orientation-rgb-jpeg-2000-v1"
+        },
+        "issues": [
+          {
+            "code": "image_evidence_needs_human_review",
+            "field": "document"
+          },
+          {
+            "code": "not_invoice",
+            "field": "image"
+          }
+        ],
+        "model": "qwen/qwen3.8-27b",
+        "policy": "Validation checks are not an authorization to pay.",
+        "provider": "groq",
+        "schema_version": "invoice-v1.1",
+        "source_sha256": "bd49d9bae86b7742f5a3154bfabce7e02139b0648510d1fd5b0a6ca91f3c4118",
+        "source_type": "image",
+        "transcript": "INVOICE\n\nVendor: Northstar Office Supplies\n\nInvoice ID: INV-2026-041\n\nInvoice Date: 2026-10-01\n\nCurrency: USD\n\nSubtotal: 1200.00\n\nTax: 96.00\n\nTotal: 1296.00\n\nSynthetic fixture - not a real invoice",
+        "transcript_sha256": "b9885eed760259e2230683284d062077aa61c49afaf3233f6ac11bab0505a6bc"
+      }
+    },
+    {
+      "document": "02_shadow.jpg",
+      "job_key": "f75f5a71c49dbf4c628efa66728e7232f29f423457e3f6508d5b3c45d49a04cb",
+      "status": "completed",
+      "attempts": 1,
+      "provider": "groq",
+      "error": null,
+      "extraction": {
+        "decision": "review",
+        "evidence_basis": "model_transcription",
+        "fields": {
+          "currency": {
+            "quote": "USD",
+            "span": {
+              "end": 109,
+              "start": 106
+            },
+            "valid": true,
+            "value": "USD"
+          },
+          "invoice_date": {
+            "quote": "2026-10-01",
+            "span": {
+              "end": 94,
+              "start": 84
+            },
+            "valid": true,
+            "value": "2026-10-01"
+          },
+          "invoice_id": {
+            "quote": "INV-2026-041",
+            "span": {
+              "end": 68,
+              "start": 56
+            },
+            "valid": true,
+            "value": "INV-2026-041"
+          },
+          "subtotal": {
+            "quote": "1200.00",
+            "span": {
+              "end": 128,
+              "start": 121
+            },
+            "valid": true,
+            "value": "1200.00"
+          },
+          "tax": {
+            "quote": "96.00",
+            "span": {
+              "end": 140,
+              "start": 135
+            },
+            "valid": true,
+            "value": "96.00"
+          },
+          "total": {
+            "quote": "1296.00",
+            "span": {
+              "end": 156,
+              "start": 149
+            },
+            "valid": true,
+            "value": "1296.00"
+          },
+          "vendor": {
+            "quote": "Northstar Office Supplies",
+            "span": {
+              "end": 42,
+              "start": 17
+            },
+            "valid": true,
+            "value": "Northstar Office Supplies"
+          }
+        },
+        "image": {
+          "local_quality_issues": [],
+          "normalized_dimensions": [
+            1100,
+            1400
+          ],
+          "normalized_sha256": "b45c2e53b91d99ae2b31d0f9aba1d16204f781d6d529bde3a0c3601365c82cd4",
+          "original_dimensions": [
+            1100,
+            1400
+          ],
+          "original_sha256": "23c9ede32c43affd2ec14c72a5c5c338a776170beb65011bb5355fc964646a91",
+          "pillow_version": "12.3.0",
+          "preprocessing": "orientation-rgb-jpeg-2000-v1"
+        },
+        "issues": [
+          {
+            "code": "image_evidence_needs_human_review",
+            "field": "document"
+          },
+          {
+            "code": "not_invoice",
+            "field": "image"
+          }
+        ],
+        "model": "qwen/qwen3.8-27b",
+        "policy": "Validation checks are not an authorization to pay.",
+        "provider": "groq",
+        "schema_version": "invoice-v1.1",
+        "source_sha256": "23c9ede32c43affd2ec14c72a5c5c338a776170beb65011bb5355fc964646a91",
+        "source_type": "image",
+        "transcript": "INVOICE\n\nVendor: Northstar Office Supplies\n\nInvoice ID: INV-2026-041\n\nInvoice Date: 2026-10-01\n\nCurrency: USD\n\nSubtotal: 1200.00\n\nTax: 96.00\n\nTotal: 1296.00\n\nSynthetic fixture - not a real invoice",
+        "transcript_sha256": "b9885eed760259e2230683284d062077aa61c49afaf3233f6ac11bab0505a6bc"
+      }
+    },
+    {
+      "document": "03_angled.jpg",
+      "job_key": "257611a321bdb8e61bb3f8521345df3c1bdc9b1d01f888fe9dae724c47e8dca8",
+      "status": "completed",
+      "attempts": 1,
+      "provider": "groq",
+      "error": null,
+      "extraction": {
+        "decision": "review",
+        "evidence_basis": "model_transcription",
+        "fields": {
+          "currency": {
+            "quote": "USD",
+            "span": {
+              "end": 109,
+              "start": 106
+            },
+            "valid": true,
+            "value": "USD"
+          },
+          "invoice_date": {
+            "quote": "2026-10-01",
+            "span": {
+              "end": 94,
+              "start": 84
+            },
+            "valid": true,
+            "value": "2026-10-01"
+          },
+          "invoice_id": {
+            "quote": "INV-2026-041",
+            "span": {
+              "end": 68,
+              "start": 56
+            },
+            "valid": true,
+            "value": "INV-2026-041"
+          },
+          "subtotal": {
+            "quote": "1200.00",
+            "span": {
+              "end": 128,
+              "start": 121
+            },
+            "valid": true,
+            "value": "1200.00"
+          },
+          "tax": {
+            "quote": "96.00",
+            "span": {
+              "end": 140,
+              "start": 135
+            },
+            "valid": true,
+            "value": "96.00"
+          },
+          "total": {
+            "quote": "1296.00",
+            "span": {
+              "end": 156,
+              "start": 149
+            },
+            "valid": true,
+            "value": "1296.00"
+          },
+          "vendor": {
+            "quote": "Northstar Office Supplies",
+            "span": {
+              "end": 42,
+              "start": 17
+            },
+            "valid": true,
+            "value": "Northstar Office Supplies"
+          }
+        },
+        "image": {
+          "local_quality_issues": [],
+          "normalized_dimensions": [
+            1100,
+            1400
+          ],
+          "normalized_sha256": "8b344e0d5acc401b3f33c5885ce0decdadbc23552473da93993c5f679c3a7ec7",
+          "original_dimensions": [
+            1100,
+            1400
+          ],
+          "original_sha256": "2b8e32a487adb8ca35968c0eca2e37aee20f74be588436a89cdddce4c75b3caf",
+          "pillow_version": "12.3.0",
+          "preprocessing": "orientation-rgb-jpeg-2000-v1"
+        },
+        "issues": [
+          {
+            "code": "image_evidence_needs_human_review",
+            "field": "document"
+          },
+          {
+            "code": "multiple_documents",
+            "field": "image"
+          }
+        ],
+        "model": "qwen/qwen3.8-27b",
+        "policy": "Validation checks are not an authorization to pay.",
+        "provider": "groq",
+        "schema_version": "invoice-v1.1",
+        "source_sha256": "2b8e32a487adb8ca35968c0eca2e37aee20f74be588436a89cdddce4c75b3caf",
+        "source_type": "image",
+        "transcript": "INVOICE\n\nVendor: Northstar Office Supplies\n\nInvoice ID: INV-2026-041\n\nInvoice Date: 2026-10-01\n\nCurrency: USD\n\nSubtotal: 1200.00\n\nTax: 96.00\n\nTotal: 1296.00\n\nSynthetic fixture - not a real invoice",
+        "transcript_sha256": "b9885eed760259e2230683284d062077aa61c49afaf3233f6ac11bab0505a6bc"
+      }
+    },
+    {
+      "document": "04_blank.png",
+      "job_key": "ec016ab2c4a311f8b7aaa71f3178c4bdf2a020a1f79970e5fe575b280c7ddcda",
+      "status": "completed",
+      "attempts": 1,
+      "provider": "groq",
+      "error": null,
+      "extraction": {
+        "decision": "review",
+        "evidence_basis": "model_transcription",
+        "fields": {
+          "currency": {
+            "quote": null,
+            "span": null,
+            "valid": false,
+            "value": null
+          },
+          "invoice_date": {
+            "quote": null,
+            "span": null,
+            "valid": false,
+            "value": null
+          },
+          "invoice_id": {
+            "quote": null,
+            "span": null,
+            "valid": false,
+            "value": null
+          },
+          "subtotal": {
+            "quote": null,
+            "span": null,
+            "valid": false,
+            "value": null
+          },
+          "tax": {
+            "quote": null,
+            "span": null,
+            "valid": false,
+            "value": null
+          },
+          "total": {
+            "quote": null,
+            "span": null,
+            "valid": false,
+            "value": null
+          },
+          "vendor": {
+            "quote": null,
+            "span": null,
+            "valid": false,
+            "value": null
+          }
+        },
+        "image": {
+          "local_quality_issues": [
+            "low_contrast"
+          ],
+          "normalized_dimensions": [
+            1100,
+            1400
+          ],
+          "normalized_sha256": "ae97651bcf4fdbbdf70b132805c0969ca7b4049b26a3586b5f7da335a3c974e3",
+          "original_dimensions": [
+            1100,
+            1400
+          ],
+          "original_sha256": "259ddf6024b1a7e82b1a903eba508b5838a0ef78bddede644a2ca16076411300",
+          "pillow_version": "12.3.0",
+          "preprocessing": "orientation-rgb-jpeg-2000-v1"
+        },
+        "issues": [
+          {
+            "code": "missing_or_ambiguous",
+            "field": "invoice_id"
+          },
+          {
+            "code": "missing_or_ambiguous",
+            "field": "vendor"
+          },
+          {
+            "code": "missing_or_ambiguous",
+            "field": "invoice_date"
+          },
+          {
+            "code": "missing_or_ambiguous",
+            "field": "currency"
+          },
+          {
+            "code": "missing_or_ambiguous",
+            "field": "subtotal"
+          },
+          {
+            "code": "missing_or_ambiguous",
+            "field": "tax"
+          },
+          {
+            "code": "missing_or_ambiguous",
+            "field": "total"
+          },
+          {
+            "code": "image_evidence_needs_human_review",
+            "field": "document"
+          },
+          {
+            "code": "low_contrast",
+            "field": "image"
+          },
+          {
+            "code": "not_invoice",
+            "field": "image"
+          },
+          {
+            "code": "unreadable",
+            "field": "image"
+          }
+        ],
+        "model": "qwen/qwen3.8-27b",
+        "policy": "Validation checks are not an authorization to pay.",
+        "provider": "groq",
+        "schema_version": "invoice-v1.1",
+        "source_sha256": "259ddf6024b1a7e82b1a903eba508b5838a0ef78bddede644a2ca16076411300",
+        "source_type": "image",
+        "transcript": "",
+        "transcript_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ]
+}

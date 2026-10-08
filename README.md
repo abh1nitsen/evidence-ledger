@@ -6,23 +6,24 @@ Built by [Abhinit Sen](https://github.com/abh1nitsen). This portfolio project de
 
 An invoice with `Subtotal: 1200.00`, `Tax: 96.00`, and `Total: 1300.00` produces structured fields plus an `arithmetic_mismatch` review reason. An invented vendor with no source quote is discarded. A crashed batch resumes from its SQLite checkpoints.
 
-![Local review prototype with an arithmetic exception](docs/images/prototype.jpg)
+![Invoice photo upload with live Groq extraction and review](docs/images/photo-prototype.jpg)
 
 ## What is implemented
 
 - Seven fields: invoice ID, vendor, date, currency, subtotal, tax, total.
-- An offline label-based baseline and an optional OpenAI Responses API extractor using a strict JSON schema.
+- An offline label-based baseline, optional OpenAI text extraction, and Groq text/vision extraction.
+- Invoice photo upload (JPEG, PNG, WebP), orientation correction, metadata removal, bounded image preparation, and conservative image review.
 - Exact source quotes, character spans, content fingerprints, semantic label checks, and decimal arithmetic validation.
 - Human-review decisions for missing/ambiguous values, unsupported formats, conflicting labels, and unlabelled AI interpretations.
 - Transactional per-document checkpoints, process locking, content/configuration-aware caching, atomic JSON exports, and bounded network retries.
 - A local review UI with source highlighting, example invoices, JSON download, and the exported batch ledger.
 - Authored synthetic data, regression tests, evaluation reports, and Windows/Linux CI.
 
-**Prototype boundary:** input is UTF-8 `.txt`, including text produced by an upstream PDF/OCR system. PDF parsing, scanned images, OCR, line items, reviewer workflow persistence, ERP integration, and payment execution are not implemented. The offline baseline is deterministic rules, not a trained AI model. AI extraction is an optional, separately identified provider; there is no hidden AI fallback.
+**Prototype boundary:** input is UTF-8 `.txt` or a single JPEG/PNG/WebP invoice image. Groq vision transcribes photographed/scanned invoices and extracts fields. PDF parsing, HEIC/TIFF, line items, reviewer workflow persistence, ERP integration, and payment execution are not implemented. The offline baseline is deterministic rules, not a trained AI model. There is no hidden AI fallback.
 
 ## Run in five minutes
 
-Python **3.11+** and Git are sufficient. There are **zero third-party runtime dependencies**, no cloud account is needed for offline mode, and installation is optional.
+Python **3.11+** and Git are sufficient for the dependency-free offline text demo. Image mode additionally needs Pillow (the `vision` extra) and a Groq API key.
 
 ```sh
 git clone https://github.com/abh1nitsen/evidence-ledger.git
@@ -51,6 +52,37 @@ Expected summaries: `processed=2, remaining=14`; then `processed=14, skipped=2`;
 
 ## Optional AI mode
 
+### Groq invoice photos
+
+Create a virtual environment, install the vision extra and set the server-side key. PowerShell:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e ".[vision]"
+$env:GROQ_API_KEY = (Get-Content -Raw 'PATH_TO_YOUR_GROQ_KEY_FILE').Trim()
+.\.venv\Scripts\python.exe -m docintel serve --vision-model qwen/qwen3.8-27b
+```
+
+Bash: activate a virtual environment, run `python -m pip install -e '.[vision]'`, export `GROQ_API_KEY`, then run the same `serve` command with `python`. The key stays on the server and is never sent to the browser. Model availability can change; use a vision-capable model listed in your account and [Groq's vision documentation](https://console.groq.com/docs/vision).
+
+Open http://127.0.0.1:8765, choose **Upload invoice image**, inspect the local preview, then click **Extract photo with Groq**. Only that click sends a metadata-stripped normalized copy to Groq. Results show the model transcription, fields, source quotes, quality issues and a persisted checkpoint. Uploading identical bytes again reuses a completed result. Every image result requires human review against the original; quotes/spans refer to the model transcription, **not verified pixel locations**.
+
+Camera advice: include the whole page, keep the phone approximately parallel to the invoice, focus on the print, use diffuse natural light, and avoid glare/strong shadows. Natural light is supported as an input condition, **not a guarantee for every photo or invoice**. Unreadable or ambiguous fields abstain. Unsupported dates/amounts/layouts can still require manual entry.
+
+For resumable mixed text/image batches:
+
+```sh
+python -m docintel run --input YOUR_INVOICE_FOLDER --provider groq --db runs/groq.sqlite --output runs/groq-report.json
+python -m docintel run --input YOUR_INVOICE_FOLDER --provider groq --db runs/groq.sqlite --output runs/groq-report.json --retry-failed
+python -m docintel evaluate --images --dataset data/images --provider groq --output runs/image-evaluation.json
+```
+
+Use the virtual-environment Python executable on Windows. Supported images are at most **8,000,000 bytes / 20 megapixels**, single-frame, and at least 32 pixels on both sides. Images are normalized to upright RGB JPEG with a longest edge of 2,000 pixels. No perspective correction or separate independent OCR is claimed.
+
+Groq uses JSON object mode with independent schema validation, a 45-second per-request timeout, and at most two retries. Rate-limit retries honor numeric `Retry-After`, capped at 60 seconds per delay; otherwise wait 20 seconds. There is no silent provider/model switch. See [IMAGE_INPUT.md](docs/IMAGE_INPUT.md) for evidence, privacy, quality and recovery boundaries.
+
+### OpenAI text extraction
+
 The application sends invoice text to OpenAI only when explicitly invoked with `--provider openai`. Configure a compatible model you can access. The sample model name below illustrates configuration and is not a recommendation or guarantee of account availability.
 
 PowerShell:
@@ -72,7 +104,7 @@ unset OPENAI_API_KEY
 
 Do not commit keys. `.env.example` is documentation; dotenv files are not automatically loaded. Provider requests use a 30-second timeout, two retries after the initial attempt, and `store: false`. A crash after a remote response but before the local commit may repeat a paid request. No exactly-once billing guarantee is claimed.
 
-The provider contract is based on the [official Structured Outputs documentation](https://developers.openai.com/api/docs/guides/structured-outputs). Schema adherence does not establish factual correctness; local evidence and policy checks still run. Initial validation used mocked provider responses, **not a live paid AI call**. See [VALIDATION.md](docs/VALIDATION.md).
+The OpenAI provider contract is based on the [official Structured Outputs documentation](https://developers.openai.com/api/docs/guides/structured-outputs). Schema adherence does not establish factual correctness. OpenAI remains mock-tested; Groq vision has a separately recorded live synthetic smoke test. See [VALIDATION.md](docs/VALIDATION.md).
 
 ## Results and limits
 
@@ -92,6 +124,7 @@ This small dataset intentionally exercises supported and unsupported behavior. I
 | [DATA_CARD.md](docs/DATA_CARD.md) | Synthetic data provenance and label definitions |
 | [PORTFOLIO.md](docs/PORTFOLIO.md) | Project positioning, walkthrough, next distinct AI/domain projects |
 | [VALIDATION.md](docs/VALIDATION.md) | What was actually verified |
+| [IMAGE_INPUT.md](docs/IMAGE_INPUT.md) | Photo upload, Groq configuration, transcription evidence and limitations |
 | [SECURITY.md](SECURITY.md) | Credential, document, provider and local UI boundaries |
 
 MIT licensed. Read [CONTRIBUTING.md](CONTRIBUTING.md) to extend providers or document types.

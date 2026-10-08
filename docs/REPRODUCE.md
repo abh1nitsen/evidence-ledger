@@ -2,6 +2,8 @@
 
 Requirements: Python 3.11+, Git, and a local filesystem with SQLite support. Tested locally on Windows with Python 3.12.10. CI covers Python 3.11/3.12 on Ubuntu and Windows. Offline mode does not require package installation, network access, an API key, or external data downloads.
 
+For images, follow [IMAGE_INPUT.md](IMAGE_INPUT.md): install the optional vision extra, configure `GROQ_API_KEY`, and choose a supported vision model. Without Pillow, nine image-specific tests are explicitly skipped; provider/text tests still execute. CI runs both the dependency-free suite and the full suite after installing the vision extra.
+
 ```sh
 git clone https://github.com/abh1nitsen/evidence-ledger.git
 cd evidence-ledger

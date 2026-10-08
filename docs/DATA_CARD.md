@@ -6,4 +6,6 @@ Sixteen UTF-8 invoice text fixtures in `data/invoices/` are paired with `data/go
 
 The set is derived from a small shared template with intentional variations. This makes it suitable for contract regression and unsuitable for broad accuracy claims. It contains no training split or independent test split. Numeric and date formats are intentionally narrow. Prose case 16 is expected to abstain under the baseline.
 
+Version 0.2 adds four synthetic image fixtures and authored gold in `data/images/`. The invoice render and its simulated shadow/angle variants contain the same seven expected values; the blank non-invoice expects seven nulls. All image cases require review. `scripts/generate_image_fixtures.py` rebuilds these from authored text using Pillow. No actual camera photograph or private invoice is included; the lighting simulation is not evidence for arbitrary natural-light conditions.
+
 Names and values are fictional, but downstream outputs from your own invoices may contain sensitive data. Runtime reports and databases are ignored by Git. Add only de-identified, reviewed fixtures to the public dataset and manually author gold labels before running the system.

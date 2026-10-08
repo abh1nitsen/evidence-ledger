@@ -19,6 +19,8 @@ flowchart LR
 
 `core.py` owns the shared JSON schema, normalization, source verification, and review policy. `providers.py` implements interchangeable extraction methods. `pipeline.py` owns durable state and export. `evaluate.py` scores the authored labels. `server.py` serves an offline demo on loopback. The UI loads exported reports; it does not expose batch execution or the AI key.
 
+Version 0.2 also adds `vision.py` for bounded image preparation and transcription validation. The UI exposes a Groq image-upload endpoint with server-side credentials and durable upload checkpoints. Image keys include original bytes, image provider prompt/schema/configuration, preprocessing revision and Pillow version. Image spans refer to model-generated transcription and always require review; they are not pixel evidence. See `IMAGE_INPUT.md` for the full image flow.
+
 ## Output contract
 
 Provider output is seven objects with `value` and `quote`, each string or null. Validated output includes normalized value, exact quote, `start`/`end` spans, and `valid`. Spans index Unicode code points in the **decoded source text**, with the end exclusive. The UI converts these to JavaScript UTF-16 indices. Quotes must match the complete raw value, not a whole passage.

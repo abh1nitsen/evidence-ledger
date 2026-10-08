@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 
 from .core import FIELDS, validate
-from .pipeline import read_document
+from .pipeline import read_document, run
 
 
 def evaluate(dataset, provider):
@@ -39,3 +39,32 @@ def evaluate(dataset, provider):
             "unsafe_validations": unsafe, "extraction_failures": failures,
             "slices": slices, "cases": details,
             "limitation": "Synthetic regression evidence; not a real-world accuracy estimate."}
+
+
+def evaluate_images(dataset, provider, db, output):
+    dataset = Path(dataset)
+    gold = json.loads((dataset / "gold.json").read_text(encoding="utf-8"))
+    batch = run(dataset, db, output, provider)
+    actual = {item["document"]: item for item in batch["documents"]}
+    details, matches, decisions, failures = [], 0, 0, 0
+    for case in gold:
+        record = actual.get(case["document"], {})
+        result = record.get("extraction")
+        if result:
+            values = {key: result["fields"][key]["value"] for key in FIELDS}
+            count = sum(values[key] == case["fields"][key] for key in FIELDS)
+            decision_correct = result["decision"] == case["decision"]
+        else:
+            values, count, decision_correct = None, 0, False
+            failures += 1
+        matches += count
+        decisions += decision_correct
+        details.append({"document": case["document"], "slice": case["slice"], "actual": values,
+                        "correct_fields": count, "decision_correct": decision_correct,
+                        "error": record.get("error"), "image_sha256": result.get("source_sha256") if result else None})
+    return {"provider": provider.name, "model": provider.model, "provider_identity": provider.image_identity,
+            "dataset": "synthetic-image-smoke-v1", "documents": len(gold),
+            "field_exact_match": matches / (len(gold)*len(FIELDS)), "decision_accuracy": decisions / len(gold),
+            "unsafe_validations": sum(item.get("extraction", {}).get("decision") == "validated" for item in batch["documents"]),
+            "extraction_failures": failures, "processed": batch["processed"], "skipped": batch["skipped"],
+            "cases": details, "limitation": "Rendered invoices with simulated shadows/angle, not real natural-light photographs."}
