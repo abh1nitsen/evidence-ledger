@@ -8,6 +8,7 @@ from pathlib import Path
 import sqlite3
 import time
 from .core import canonical
+from .spending import CATEGORIES, suggest_category, summarize
 
 class ReviewConflict(ValueError):
     pass
@@ -19,6 +20,7 @@ class ReviewStore:
         with self.connect() as c:
             c.execute("CREATE TABLE IF NOT EXISTS documents (id TEXT PRIMARY KEY, original TEXT NOT NULL, revision INTEGER NOT NULL DEFAULT 0)")
             c.execute("CREATE TABLE IF NOT EXISTS decisions (id INTEGER PRIMARY KEY AUTOINCREMENT, document_id TEXT NOT NULL, field TEXT NOT NULL, action TEXT NOT NULL, value TEXT, timestamp REAL NOT NULL, revision INTEGER NOT NULL)")
+            c.execute("CREATE TABLE IF NOT EXISTS spending_groups (id INTEGER PRIMARY KEY AUTOINCREMENT, document_id TEXT NOT NULL, category TEXT NOT NULL, tags TEXT NOT NULL, timestamp REAL NOT NULL, revision INTEGER NOT NULL)")
     @contextlib.contextmanager
     def connect(self):
         with contextlib.closing(sqlite3.connect(self.path,timeout=5)) as c:
@@ -35,13 +37,16 @@ class ReviewStore:
         return self.get(identity)
     def get(self,identity):
         with self.connect() as c:
+            c.execute("BEGIN")
             row=c.execute("SELECT original,revision FROM documents WHERE id=?",(identity,)).fetchone()
             if not row: raise KeyError("unknown document")
             history=c.execute("SELECT field,action,value,timestamp,revision FROM decisions WHERE document_id=? ORDER BY revision",(identity,)).fetchall()
+            groups=c.execute("SELECT category,tags,timestamp,revision FROM spending_groups WHERE document_id=? ORDER BY revision",(identity,)).fetchall()
         result=json.loads(row[0]); result["review"]={"document_id":identity,"revision":row[1],"history":[]}
         for field,action,value,stamp,revision in history:
             result["fields"][field]["human_review"]={"action":action,"value":value,"revision":revision}
             result["review"]["history"].append({"field":field,"action":action,"value":value,"timestamp":stamp,"revision":revision})
+        result["spending"]={"suggestion":suggest_category(result),"category":groups[-1][0] if groups else None,"tags":json.loads(groups[-1][1]) if groups else [],"history":[{"category":g[0],"tags":json.loads(g[1]),"timestamp":g[2],"revision":g[3]} for g in groups]}
         result["effective_fields"]={k:(f["human_review"]["value"] if f.get("human_review") else f["value"]) for k,f in result["fields"].items()}
         result["review"]["status"]="reviewed" if all(f.get("human_review") for f in result["fields"].values() if f.get("required") or f.get("proposal_value") is not None) else "pending"
         result["effective_issues"]=[]
@@ -93,3 +98,23 @@ class ReviewStore:
             c.execute("INSERT INTO decisions (document_id,field,action,value,timestamp,revision) VALUES (?,?,?,?,?,?)",(identity,field,action,value,time.time(),next_revision))
             c.execute("UPDATE documents SET revision=? WHERE id=?",(next_revision,identity))
         return self.get(identity)
+
+    def group(self,identity,category,tags,revision):
+        if category not in CATEGORIES or not isinstance(revision,int) or isinstance(revision,bool):
+            raise ValueError("invalid spending group")
+        if not isinstance(tags,list) or len(tags)>8 or any(not isinstance(t,str) or not t.strip() or len(t)>30 or any(ord(ch)<32 for ch in t) for t in tags):
+            raise ValueError("invalid tags")
+        tags=list(dict.fromkeys(t.strip().lower() for t in tags))
+        with self.connect() as c:
+            c.execute("BEGIN IMMEDIATE")
+            row=c.execute("SELECT revision FROM documents WHERE id=?",(identity,)).fetchone()
+            if not row: raise KeyError("unknown document")
+            if row[0]!=revision: raise ReviewConflict("stale review revision")
+            c.execute("INSERT INTO spending_groups (document_id,category,tags,timestamp,revision) VALUES (?,?,?,?,?)",(identity,category,json.dumps(tags),time.time(),revision+1))
+            c.execute("UPDATE documents SET revision=? WHERE id=?",(revision+1,identity))
+        return self.get(identity)
+
+    def spending_summary(self):
+        with self.connect() as c:
+            identities=[x[0] for x in c.execute("SELECT id FROM documents ORDER BY rowid DESC")]
+        return summarize([self.get(identity) for identity in identities])

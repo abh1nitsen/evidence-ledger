@@ -1,0 +1,32 @@
+# Spending groups and smartphone access
+
+## Receipt-level spend
+
+Each saved reading has a suggested category, a user-saved category and up to eight tags (30 characters each). The initial categories cover groceries, dining, transport, shopping, health/personal care, travel/accommodation, utilities and office/business. A transparent keyword heuristic suggests a category only when one group matches; mixed or unclear text stays Unclassified. It does not infer a trustworthy category from a merchant brand. Confirm the category yourself. Tags such as work, holiday or household are saved for later filtering, but the current overview does not aggregate tags.
+
+The overview groups by saved category, currency and reviewed month. Only explicitly accepted or edited totals and currencies contribute. Dates must be accepted/edited for monthly grouping; otherwise they appear under Date not reviewed. Missing totals stay excluded; BASE never becomes TOTAL. Currencies are never added together or converted. Arithmetic conflicts are excluded. The overview reports exclusion counts.
+
+Grouping is persisted in the same SQLite database, using transactional, revision-checked append-only events. Field decisions and grouping share a revision, so concurrent stale writes return HTTP 409. JSON exports contain spending metadata/history alongside immutable original fields and effective values. Existing databases acquire the new table automatically.
+
+Identical source bytes are deduplicated, preferring the most reviewed extraction revision. Different photos with the same complete effective merchant, identifier, date, currency and total are flagged as possible duplicates and counted once. This heuristic can merge genuinely distinct receipts with reused identifiers, and cannot identify every duplicate if identifiers or dates differ/are absent. All documents remain available as saved readings. Separate refunds, budgets, exchange rates, identity management and accounting reconciliation are future work.
+
+This version groups whole receipts. A supermarket basket can include groceries, cleaning products and cosmetics. Reliable item-level spending needs a separate line-item schema (description, quantity, unit price, discounts, line total), source grounding, human review and reconciliation to the bill total. Receipt categories do not imply that every item belongs to that category. No broad category-accuracy claim follows from the rules.
+
+## Taking a bill photo on a phone
+
+The UI now has separate upload and **Take a bill photo** controls. The latter requests the rear camera through `capture="environment"`; browser behavior varies. The upload control remains available for existing photos. JPEG/PNG/WebP under 8 MB are supported; HEIC needs conversion to JPEG. This is a camera/file-picker hint, not a live camera stream. Camera behavior was not tested on physical Android/iOS hardware.
+
+The server still binds only to `127.0.0.1`. On a smartphone that address means the smartphone itself, not this laptop. A QR code or home-screen shortcut cannot make an unreachable server reachable.
+
+| Route | Experience | Prerequisites and tradeoffs |
+| --- | --- | --- |
+| Hosted mobile web app | Open an HTTPS link, take/upload a photo, review and group it. A QR code can open the link. | Best simple experience for other users. Requires a deployed backend, sign-in, per-user storage, upload limits and secure server-side API keys. |
+| Private connection to your laptop | Install Tailscale on laptop and phone; access a private HTTPS URL using Tailscale Serve. | Useful for a personal prototype. Laptop/server must remain running. Requires private-network setup and an explicitly allowed proxy origin in this app. |
+| Same Wi-Fi access | Phone opens the laptop LAN address. | Requires a deliberate LAN bind/firewall setup and matching allowed origins. Current loopback build does not support this directly; local Wi-Fi alone is insufficient. |
+| Messaging bot or Share-to-app | Send the image to a bot or share from the camera/gallery. | Adds bot/webhook processing, authentication, queueing and data retention design. Messaging services receive a copy of the bill. More work than a web link. |
+
+Recommended next step: a hosted authenticated mobile web app, keeping OCR/Groq keys on the backend. For personal trials, use a private HTTPS connection. Do not simply expose this demo through a public tunnel: its saved-reading/spending endpoints currently share a single unauthenticated store, and its write-origin checks accept only localhost. A proxy URL alone will not enable extraction. Network exposure and authentication are not implemented or enabled by this release.
+
+A home-screen shortcut is a useful convenience once the URL is reachable. Full installable PWA/offline upload queues and smartphone Share Target support are future enhancements; extraction still requires the backend and Groq connection.
+
+Sources: [MDN capture attribute](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/capture), [MDN file inputs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/file), [Tailscale Serve](https://tailscale.com/docs/features/tailscale-serve), [private application sharing](https://tailscale.com/docs/use-cases/application-testing/share-local-dev-server-with-team).

@@ -27,3 +27,7 @@ The baseline only supports declared labels and constrained date/amount formats. 
 See synthetic-only results in `EVALUATION.md` and verification in `VALIDATION.md`. OpenAI text behavior remains mock-tested. Groq vision is exercised with a real key on a small synthetic smoke set; this does not establish accuracy on natural-light camera photos. There is no trained-model artifact, no real invoice data, and no claim of production readiness.
 
 Version 0.4 adds optional independently grounded PaddleOCR, ten proposed fields, document roles and human decisions. Scores are transparent heuristics with a provisional threshold, not calibrated probabilities. Human acceptance is not machine validation or payment approval. No evaluated replacement model superiority is claimed from a three-layout synthetic regression.
+
+## Version 0.5 spending categories
+
+Receipt category suggestions use explicit keyword rules and abstain on mixed/unknown matches. They are separate from extraction scores, always require a saved user choice and have no measured real-receipt classification accuracy. Current groups apply to whole receipts; mixed basket/item categories and calibrated classification remain future work.

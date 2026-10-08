@@ -155,3 +155,7 @@ python scripts/benchmark_documents.py --ocr paddle --db runs/hybrid-diversity.sq
 The three authored invoice, retail and payment-slip layouts measure **proposed** fields and absent-field behavior separately. These are regression examples, not a real-photo generalisation benchmark or confidence calibration dataset.
 
 ![Saved corrections preserve the original suggestion](docs/images/review-controls.jpg)
+
+## Spending groups and phone capture
+
+Save an editable receipt category and tags, then use the spending overview to compare reviewed totals by category, currency and month. A tentative keyword suggestion never confirms a group automatically. Totals and currency must be explicitly reviewed; BASE is not a substitute for TOTAL. The responsive UI includes a separate rear-camera capture control. Phone access still requires a reachable backend; this release stays loopback-only. See [spending and mobile guide](docs/SPENDING_AND_MOBILE.md) for semantics, duplicate handling and practical access options.

@@ -120,3 +120,19 @@ class HTTPTests(unittest.TestCase):
             request=urllib.request.Request(self.base+'/api/review',data=json.dumps(body).encode(),headers={'Content-Type':'application/json','Origin':origin})
             with self.assertRaises(urllib.error.HTTPError) as error: urllib.request.urlopen(request,timeout=3)
             self.assertEqual(error.exception.code,expected)
+
+    def test_group_endpoint_restoration_export_and_origin(self):
+        with self.post() as response: result=json.load(response)
+        body={'document_id':result['review']['document_id'],'category':'Dining','tags':['work'],'revision':0}
+        request=urllib.request.Request(self.base+'/api/group',data=json.dumps(body).encode(),headers={'Content-Type':'application/json','Origin':self.base})
+        with urllib.request.urlopen(request,timeout=3) as response: grouped=json.load(response)
+        self.assertEqual(grouped['spending']['category'],'Dining')
+        with urllib.request.urlopen(self.base+grouped['download_url'],timeout=3) as response: exported=json.load(response)
+        self.assertEqual(exported['spending']['tags'],['work'])
+        with urllib.request.urlopen(self.base+'/api/spending',timeout=3) as response: summary=json.load(response)
+        self.assertEqual(summary['included_receipts'],0)
+        with self.assertRaises(urllib.error.HTTPError) as error: urllib.request.urlopen(request,timeout=3)
+        self.assertEqual(error.exception.code,409)
+        request=urllib.request.Request(self.base+'/api/group',data=json.dumps({**body,'revision':1}).encode(),headers={'Content-Type':'application/json','Origin':'https://untrusted.example'})
+        with self.assertRaises(urllib.error.HTTPError) as error: urllib.request.urlopen(request,timeout=3)
+        self.assertEqual(error.exception.code,403)

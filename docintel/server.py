@@ -15,6 +15,7 @@ from urllib.parse import urlparse
 from .core import VERSION, baseline, validate, digest
 from .documents import attach_document
 from .reviews import ReviewStore, ReviewConflict
+from .spending import CATEGORIES
 from .pipeline import run
 from .providers import Groq, ProviderError
 from .vision import MAX_IMAGE_BYTES
@@ -70,8 +71,13 @@ def handler(report, image_provider=None, image_db=None, review_threshold=0.85):
                     self.send(200,json.dumps({"documents":reviews.recent()}))
                 except (OSError,sqlite3.Error):
                     self.send(503,'{"error":"review_storage_unavailable"}')
+            elif path == "/api/spending":
+                try:
+                    self.send(200,json.dumps(reviews.spending_summary()))
+                except (OSError,sqlite3.Error):
+                    self.send(503,'{"error":"review_storage_unavailable"}')
             elif path == "/api/config":
-                self.send(200, json.dumps({"image_enabled": image_provider is not None,
+                self.send(200, json.dumps({"categories":CATEGORIES,"image_enabled": image_provider is not None,
                     "image_provider": image_provider.name if image_provider else None, "model": image_provider.model if image_provider else None,
                     "ocr_enabled": getattr(image_provider,"uses_ocr",False), "score_calibrated":False, "review_threshold":review_threshold, "max_image_bytes": MAX_IMAGE_BYTES}))
             elif path.startswith("/api/review/") and re.fullmatch(r"[a-f0-9]{64}",path.removeprefix("/api/review/")):
@@ -93,15 +99,16 @@ def handler(report, image_provider=None, image_db=None, review_threshold=0.85):
             if self.headers.get("Origin") not in expected:
                 self.send(403, '{"error":"origin_rejected"}')
                 return
-            if self.path == "/api/review":
+            if self.path in {"/api/review","/api/group"}:
                 try:
                     if self.headers.get("Content-Type")!="application/json": raise ValueError()
                     length=int(self.headers.get("Content-Length","0"))
                     if not 0<length<=4096: raise ValueError()
                     data=json.loads(self.rfile.read(length))
-                    if set(data)!={"document_id","field","action","value","revision"}: raise ValueError()
+                    required={"document_id","category","tags","revision"} if self.path=="/api/group" else {"document_id","field","action","value","revision"}
+                    if set(data)!=required: raise ValueError()
                     if not isinstance(data["document_id"],str) or not re.fullmatch(r"[a-f0-9]{64}",data["document_id"]): raise ValueError()
-                    result=reviews.decide(data["document_id"],data["field"],data["action"],data["value"],data["revision"])
+                    result=reviews.group(data["document_id"],data["category"],data["tags"],data["revision"]) if self.path=="/api/group" else reviews.decide(data["document_id"],data["field"],data["action"],data["value"],data["revision"])
                     self.send_result(result)
                 except ReviewConflict:
                     self.send(409,'{"error":"review_changed_reload_saved_reading"}')

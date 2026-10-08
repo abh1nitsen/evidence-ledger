@@ -1,5 +1,10 @@
 # Validation record
 
+## Version 0.5 layout and receipt-level spend
+
+Verified 8 October 2026: **86 automated tests passed**. Added transactional grouping/restoration/export, shared-revision conflicts, invalid tags/categories, reviewed-only totals, currency separation, date-review grouping, arithmetic exclusion and duplicate suppression tests. Browser verification saved a synthetic receipt category/tags, accepted its currency and total, observed the correct spending total, and restored the metadata. Responsive checks found no horizontal overflow in the panels/fields/selectors at 320, 390 and 1024 pixels, including a 192-character unbroken merchant name and expanded saved-reading controls. These browser viewport checks do not replace physical-phone tests. The rear-camera input is present; physical Android/iOS capture and external phone access remain untested. Synthetic-only desktop/mobile previews are in `docs/images/spending-layout.jpg` and `docs/images/spending-mobile.jpg`.
+
+
 ## Version 0.4 independent OCR and saved review
 
 Verified on 8 October 2026 with Python 3.12.10, Pillow 12.3.0, PaddleOCR 3.7.0, PaddlePaddle 3.3.1 and PaddleX 3.7.2 on Windows CPU. **78 automated tests passed**, including labelled identifiers/currency markers, century confirmation, split date/time OCR lines, blank total versus base roles, OCR coordinate/score validation and timeout/no-fallback behavior, cache reuse, immutable originals, human arithmetic checks, optimistic review revisions, HTTP review/export and restoration. Core offline evaluation remains 112/112 fields and 16/16 expected decisions.
