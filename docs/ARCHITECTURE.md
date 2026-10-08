@@ -1,0 +1,50 @@
+# Architecture
+
+```mermaid
+flowchart LR
+    A[UTF-8 invoice text] --> B[Bounded input validation]
+    B --> C[Content + provider + schema hash]
+    C --> D{Checkpoint found?}
+    D -->|Completed| E[Reuse result]
+    D -->|New or pending| F[Commit pending job]
+    F --> G[Offline baseline or structured AI provider]
+    G --> H[Schema + evidence + label + arithmetic checks]
+    H --> I[Commit completed result or failed job]
+    E --> J[Atomic JSON report]
+    I --> J
+    J --> K[Local review UI]
+```
+
+## Modules
+
+`core.py` owns the shared JSON schema, normalization, source verification, and review policy. `providers.py` implements interchangeable extraction methods. `pipeline.py` owns durable state and export. `evaluate.py` scores the authored labels. `server.py` serves an offline demo on loopback. The UI loads exported reports; it does not expose batch execution or the AI key.
+
+## Output contract
+
+Provider output is seven objects with `value` and `quote`, each string or null. Validated output includes normalized value, exact quote, `start`/`end` spans, and `valid`. Spans index Unicode code points in the **decoded source text**, with the end exclusive. The UI converts these to JavaScript UTF-16 indices. Quotes must match the complete raw value, not a whole passage.
+
+Amounts use Decimal, dates require ISO `YYYY-MM-DD`, and seven explicitly allowed currencies are supported. Negative amounts, locale-ambiguous separators, symbols, exponents, and values over 1 billion require review. This intentionally excludes credit notes and some legitimate invoices.
+
+Quotes must have a unique token-bounded occurrence. This prevents a tax amount such as `96.00` from being confused with the substring of `1296.00`, while repeated equal amounts conservatively require review. A labelled field must agree with its matching source label. An AI value from unlabelled prose can retain its source evidence, but triggers `semantic_binding_needs_review`.
+
+Grounding supports traceability, not proof that the supplier or invoice is authentic. Document-instruction detection is a small diagnostic rule, not a complete security classifier. AI mode has no tools and treats source text as untrusted data.
+
+## Persistence and recovery
+
+Jobs are keyed by SHA-256 of the source-content hash, provider identity, and validation schema version. Baseline identity contains an implementation revision; AI identity contains model name, prompt and output schema. Changes to extraction or review policy must bump the relevant revision. Provider keys are never included.
+
+States are `pending`, `completed`, and `failed`. Completion includes both `validated` and `review` decisions. A review is a successful extraction needing human attention, not a failed job.
+
+The process commits `pending` before calling the provider and commits result/error afterward. An interrupted pending job is retried on the next run. A completed job is reused. A failed job is reused until `--retry-failed` is supplied. Input failures are rechecked each run and do not receive checkpoint keys, since valid content was not obtained.
+
+SQLite uses WAL, `synchronous=FULL`, and transaction boundaries. A nonblocking OS lock serializes access to each database and releases automatically on process death. This is a single-host, single-worker design; network filesystems and distributed workers are outside scope. Different databases can execute independently; do not have them share an output path.
+
+Exports use a flushed/fsynced temporary file in the destination directory and `os.replace`. The database is authoritative: if export fails, resume regenerates the report without repeating completed extraction. Directory metadata is not explicitly fsynced, so power-loss guarantees vary by filesystem/OS. SQLite damage, disk loss and hardware failure require backups.
+
+The report includes only files discovered in the current run; old checkpoint results remain in the database. If a file is changed during discovery/processing, that run represents the bytes read; rerun with a stable input directory for a complete snapshot. `--stop-after` writes a partial report with a nonzero `remaining` count.
+
+## Provider failures
+
+HTTP 429 and selected 5xx responses, network errors, and timeouts have a bounded retry budget. Permanent authentication errors, refusal, malformed output, and incomplete generation do not silently switch to the baseline. Sanitized error categories are checkpointed; provider bodies and source documents are never emitted to command logs.
+
+Remote execution is at least once after a local crash: an already-paid remote response may not have reached the checkpoint. Local completed results are reused, but remote billing is not exactly once. Current reports do not store actual resolved model snapshot, usage, latency, or response ID. For a production experiment, add those metadata and select fixed model versions where available.

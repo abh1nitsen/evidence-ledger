@@ -1,0 +1,1 @@
+Please process invoice INV-2026-041 from Northstar Office Supplies, issued 2026-10-01. Currency USD. Subtotal 1200.00, tax 96.00, total 1296.00.

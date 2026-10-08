@@ -1,0 +1,7 @@
+Supplier: Northstar Office Supplies
+Invoice No.: INV-2026-041
+Invoice Date: 2026-10-01
+Currency: USD
+Subtotal: 1200.00
+Tax: 96.00
+Grand Total: 1296.00

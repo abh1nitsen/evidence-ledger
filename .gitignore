@@ -1,0 +1,16 @@
+.secrets/
+.env
+.env.*
+!.env.example
+*.sqlite*
+*.lock
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+runs/
+*.tmp
+*.log
+build/
+dist/
+*.egg-info/
