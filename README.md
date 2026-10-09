@@ -49,7 +49,7 @@ python -m docintel run --db runs/recovery.sqlite --output runs/recovery.json
 python -m docintel run --db runs/recovery.sqlite --output runs/recovery.json
 ```
 
-Expected summaries: `processed=2, remaining=14`; then `processed=14, skipped=2`; then `processed=0, skipped=16`. The same content with a different file name is computed once, but both file names appear in the report.
+Expected summaries: `processed=2, remaining=15`; then `processed=15, skipped=2`; then `processed=0, skipped=17`. The same content with a different file name is computed once, but both file names appear in the report.
 
 ## Optional AI mode
 
@@ -109,7 +109,7 @@ The OpenAI provider contract is based on the [official Structured Outputs docume
 
 ## Results and limits
 
-The committed [baseline evaluation report](reports/baseline-evaluation.json) records **112/112 field matches**, **16/16 expected decisions**, and **zero unsafe validations** on the authored synthetic regression set. Null/abstention matches count as correct field matches, so this is not an extraction coverage score. Five fixtures are expected to validate and eleven require review.
+The committed [baseline evaluation report](reports/baseline-evaluation.json) records **119/119 field matches**, **17/17 expected decisions**, and **zero unsafe validations** on the authored synthetic regression set. Null/abstention matches count as correct field matches, so this is not an extraction coverage score. Six fixtures are expected to validate and eleven require review. See [evaluation methodology](docs/EVALUATION.md) for the versioned number-format policy and limitations.
 
 This small dataset intentionally exercises supported and unsupported behavior. It is not held-out real-world evidence or a benchmark against other products. AI and baseline scores must be reported separately. Real supplier layouts, OCR noise, fraud, rounding policies, and regulatory requirements need a larger, independent evaluation.
 

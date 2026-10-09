@@ -1,5 +1,11 @@
 # Validation record
 
+## Version 0.8.1 receipt number formats
+
+Verified 9 October 2026: **139 automated tests passed**. Decimal-comma amounts, explicit European thousands grouping, trailing currency markers and quantity suffixes are normalized without multiplying printed line costs. Ambiguous/malformed separators and conflicting currency markers are rejected. The v2 authored benchmark has 17 documents: 119/119 field matches, 17/17 decisions, zero unsafe validations. Its European amount expectation now reflects the supported format; a separate ambiguous separator case remains review-only.
+
+Saved image readings recover numbers only from matching saved quotes. Original database snapshots and human corrections remain unchanged. Accept uses the recovered proposal through the same revision checks. Cached images need no new model call. Text checkpoint identities include the numeric parser version; the Excel projection invalidates its generation when that version changes. Browser checks verified restored prices/quantities and available Accept controls without accepting private values. Missing readings and read-but-unparseable amounts have different messages.
+
 ## Version 0.7 clear spending overview
 
 Verified 8 October 2026: **113 automated tests passed**. Added practice/personal separation, real pasted-text eligibility, unique receipt counts, explicit next-step statuses/review targets, distinct different-photo duplicate inspection, chain/component-page suppression and practice metadata through HTTP. Existing monetary reconciliation, currency separation, saved-decision and recovery tests remain passing. No extraction model/prompt was changed or fresh provider request required for this UI update.

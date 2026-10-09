@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "evidence-ledger"
-version = "0.8.0"
+version = "0.8.1"
 description = "Evidence-grounded invoice extraction with resumable processing and evaluation"
 requires-python = ">=3.11"
 authors = [{name = "Abhinit Sen"}]

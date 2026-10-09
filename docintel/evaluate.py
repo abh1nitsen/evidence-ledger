@@ -34,7 +34,7 @@ def evaluate(dataset, provider):
         group["correct_fields"] += item["correct_fields"]
         group["total_fields"] += item["total_fields"]
     return {"provider": provider.name, "provider_identity": provider.identity,
-            "dataset": "authored-synthetic-v1", "documents": len(cases),
+            "dataset": "authored-synthetic-v2", "documents": len(cases),
             "field_exact_match": correct / total, "decision_accuracy": decisions / len(cases),
             "unsafe_validations": unsafe, "extraction_failures": failures,
             "slices": slices, "cases": details,

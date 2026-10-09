@@ -10,6 +10,7 @@ import time
 from .core import canonical
 from .spending import CATEGORIES, suggest_category, summarize
 from .items import reviewed_item, reconcile
+from .numbers import number_view
 
 class ReviewConflict(ValueError):
     pass
@@ -47,7 +48,7 @@ class ReviewStore:
             history=c.execute("SELECT field,action,value,timestamp,revision FROM decisions WHERE document_id=? ORDER BY revision",(identity,)).fetchall()
             groups=c.execute("SELECT category,tags,timestamp,revision FROM spending_groups WHERE document_id=? ORDER BY revision",(identity,)).fetchall()
             item_history=c.execute("SELECT item_id,action,value,timestamp,revision FROM item_decisions WHERE document_id=? ORDER BY revision",(identity,)).fetchall()
-        result=json.loads(row[0]); result["review"]={"document_id":identity,"revision":row[1],"history":[]}
+        result=number_view(json.loads(row[0])); result["review"]={"document_id":identity,"revision":row[1],"history":[]}
         with self.connect() as c:
             member=c.execute('SELECT name FROM household_members WHERE source=?',(self.member_key(result),)).fetchone()
             member_history=c.execute('SELECT name,timestamp,document_id,revision FROM member_history WHERE source=? ORDER BY id',(self.member_key(result),)).fetchall()
@@ -116,7 +117,7 @@ class ReviewStore:
             c.execute("BEGIN IMMEDIATE")
             row=c.execute("SELECT original,revision FROM documents WHERE id=?",(identity,)).fetchone()
             if not row: raise KeyError("unknown document")
-            original=json.loads(row[0])
+            original=number_view(json.loads(row[0]))
             if field not in original["fields"]: raise ValueError("unknown field")
             if row[1]!=revision: raise ReviewConflict("stale review revision")
             if action=="accept":
@@ -160,7 +161,7 @@ class ReviewStore:
             row=c.execute('SELECT original,revision FROM documents WHERE id=?',(identity,)).fetchone()
             if not row:raise KeyError('unknown document')
             if row[1]!=revision:raise ReviewConflict('stale review revision')
-            original=json.loads(row[0]);items=original.get('items',[])
+            original=number_view(json.loads(row[0]));items=original.get('items',[])
             item=next((i for i in items if i['id']==item_id),None)
             if item is None:raise ValueError('unknown item')
             edited=reviewed_item(item,action,values)

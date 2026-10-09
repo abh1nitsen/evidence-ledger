@@ -6,7 +6,7 @@ from pathlib import Path
 import sqlite3
 import tempfile
 
-from .core import VERSION, digest, stable_json, validate
+from .core import VERSION, NUMBER_FORMAT_VERSION, digest, stable_json, validate
 from .providers import ProviderError
 from .vision import IMAGE_SUFFIXES, MAX_IMAGE_BYTES, prepare_image, validate_image
 
@@ -113,7 +113,7 @@ def run(input_dir, db, output, provider, retry_failed=False, stop_after=None, af
                 records.append({"document": path.name, "status": "failed",
                                 "error": exc.code if isinstance(exc,ProviderError) else "invalid_input", "detail": type(exc).__name__})
                 continue
-            key = digest(content_hash + identity + VERSION)
+            key = digest(content_hash + identity + VERSION + (NUMBER_FORMAT_VERSION if not is_image else ''))
             previous = con.execute("SELECT status,attempts,result,error FROM jobs WHERE job_key=?", (key,)).fetchone()
             if previous and (previous[0] == "completed" or (previous[0] == "failed" and not retry_failed)):
                 skipped += 1
@@ -144,7 +144,8 @@ def run(input_dir, db, output, provider, retry_failed=False, stop_after=None, af
             record = {"document": path.name, "job_key": key, "status": status,
                       "attempts": attempts, "provider": provider.name, "error": error}
             if result:
-                record["extraction"] = json.loads(result)
+                from .numbers import number_view
+                record["extraction"] = number_view(json.loads(result))
             records.append(record)
             if stop_after is not None and processed >= stop_after:
                 break

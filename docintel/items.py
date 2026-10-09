@@ -2,7 +2,7 @@
 import copy
 from decimal import Decimal
 import re
-from .core import canonical
+from .core import canonical,receipt_amount
 
 CATEGORIES=("Unallocated","Food / confectionery","Food / chocolate","Food / snack bars","Food / prepared food","Food / cakes & pastries","Food / groceries","Food / drinks","Personal care / lip care","Beauty / lip cosmetics","Office / stationery","Shopping / accessories","Shopping / other","Travel / accommodation","Transport","Fees / packaging","Fees / service","Taxes","Other")
 KINDS=("product","service","discount","tax","payment","fee")
@@ -15,16 +15,16 @@ ITEM_SCHEMA={"type":"array","maxItems":100,"items":{"type":"object","additionalP
 def money(value):
     if value is None:return None
     if not isinstance(value,str) or len(value)>60:raise ValueError("invalid item amount")
-    raw=value.strip().replace('−','-');raw=re.sub(r'^(?:USD|SGD|EUR|GBP|INR|CAD|AUD|JPY|S\$|US\$|A\$|C\$|[$£€₹])\s*','',raw,flags=re.I);negative=raw.startswith('-')
-    if negative:raw=raw[1:].strip()
-    result=canonical('total',raw)
-    return ('-' if negative and Decimal(result)!=0 else '')+result
+    result=receipt_amount(value,allow_negative=True)
+    return '0.00' if Decimal(result)==0 else result
 
 
 def quantity(value):
     if value is None:return None
-    if not isinstance(value,str) or not re.fullmatch(r"\d+(?:\.\d{1,3})?",value.strip()):raise ValueError("invalid quantity")
-    n=Decimal(value)
+    if not isinstance(value,str):raise ValueError('invalid quantity')
+    raw=re.sub(r'\s*[xX\u00d7]$','',value.strip()).strip()
+    if not re.fullmatch(r"\d+(?:\.\d{1,3})?",raw):raise ValueError("invalid quantity")
+    n=Decimal(raw)
     if not 0<n<=10000:raise ValueError("quantity outside limits")
     return format(n,'f')
 
@@ -45,6 +45,7 @@ def validate_items(proposed,text,ocr=None):
         if p['kind']!='discount' and target is not None:raise ValueError("target only allowed on discounts")
         if target is not None and proposed[target].get('kind') not in {'product','service'}:raise ValueError("discount target is not a purchase")
         item=copy.deepcopy(p);item['id']=str(index);issues=[]
+        item['raw_numbers']={key:p[key] for key in ('amount','unit_price','quantity')}
         quote=p['quote'];grounded=bool(quote and quote in text and p['description'] and p['description'] in quote)
         if not grounded:issues.append('description_not_grounded')
         for key,normalize in (('amount',money),('unit_price',money),('quantity',quantity)):

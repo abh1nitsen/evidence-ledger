@@ -39,3 +39,7 @@ Open **Spending** to see confirmed totals and categories, followed by **Your rec
 ## Household Excel
 
 Choose a household member before reading a photo. Change the saved buyer using **Bought by â†’ Save member**. Open **Spending â†’ Download household Excel** after its status says up to date. Close an open Excel workbook before retrying a failed update. [Data rules, setup and recovery](HOUSEHOLD_EXCEL.md).
+
+## Printed number formats
+
+Decimal-comma prices (`14,90`), currency after the amount (`23,79 €`) and quantities (`1x`) are supported. Saved receipts can recover matching quoted numbers without re-uploading or clearing decisions. Accept appears when there is a usable proposal; genuinely unparseable readings explain why Edit is required. Tax included in line totals is not added twice.

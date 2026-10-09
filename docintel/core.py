@@ -6,6 +6,7 @@ import json
 import re
 
 VERSION = "invoice-v3.0.0"
+NUMBER_FORMAT_VERSION = "receipt-numbers-v2"
 FIELDS = ("invoice_id", "vendor", "invoice_date", "currency", "subtotal", "tax", "total")
 LABELS = {
     "invoice_id": r"(?:(?:INV|Invoice (?:ID|Number|No\.?))|(?:Tax )?invoice/Receipt No\.?)",
@@ -33,6 +34,38 @@ def digest(value):
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
+def receipt_amount(value,allow_negative=False):
+    """Unambiguous printed formats only; never guess a three-digit decimal."""
+    if not isinstance(value,str) or not value.strip() or len(value)>100:
+        raise ValueError('unsupported amount format')
+    value=value.strip().replace('\u2212','-')
+    negative=value.startswith('-')
+    if negative:
+        if not allow_negative:raise ValueError('unsupported amount format')
+        value=value[1:].strip()
+    marker=r'(?:USD|SGD|EUR|GBP|INR|CAD|AUD|JPY|S\$|US\$|A\$|C\$|[$\u00a3\u20ac\u20b9])'
+    prefix=re.match(r'^'+marker,value,re.I);suffix=re.search(marker+r'$',value,re.I)
+    if prefix and suffix:
+        def currency(token):return CURRENCY_MARKERS.get(token,token.upper())
+        if currency(prefix.group())!=currency(suffix.group()):raise ValueError('conflicting currency markers')
+    value=re.sub(r'^'+marker+r'\s*','',value,flags=re.I)
+    value=re.sub(r'\s*'+marker+r'$','',value,flags=re.I).strip()
+    if value.startswith('-'):
+        if negative or not allow_negative:raise ValueError('unsupported amount format')
+        negative=True
+        value=value[1:].strip()
+    if re.fullmatch(r'\d+(?:\.\d{1,2})?',value):normalized=value
+    elif re.fullmatch(r'\d{1,3}(?:,\d{3})+(?:\.\d{1,2})?',value):normalized=value.replace(',','')
+    elif re.fullmatch(r'\d+,\d{1,2}',value):normalized=value.replace(',','.')
+    elif re.fullmatch(r'\d{1,3}(?:\.\d{3})+,\d{1,2}',value):normalized=value.replace('.','').replace(',','.')
+    elif re.fullmatch(r'\d{1,3}(?:[ \u00a0\u202f]\d{3})+(?:[.,]\d{1,2})?',value):normalized=re.sub(r'[ \u00a0\u202f]','',value).replace(',','.')
+    else:raise ValueError('unsupported amount format')
+    amount=decimal.Decimal(normalized)
+    if amount>decimal.Decimal('1000000000'):raise ValueError('amount outside prototype limit')
+    if negative:amount=-amount
+    return format(amount.quantize(decimal.Decimal('0.01')),'.2f')
+
+
 def canonical(field, value):
     if not isinstance(value, str) or not value.strip():
         raise ValueError("empty value")
@@ -51,14 +84,7 @@ def canonical(field, value):
         clock = re.sub(r"\s*(AM|PM)$", r" \1", clock)
         return dt.datetime.strptime(clock, pattern).strftime("%H:%M:%S")
     if field in AMOUNTS:
-        # Currency markers do not identify currency; that is validated separately.
-        value = re.sub(r"^(?:USD|SGD|EUR|GBP|INR|CAD|AUD|JPY|S\$|US\$|A\$|C\$|[$£€₹])\s*", "", value, flags=re.I)
-        if not re.fullmatch(r"(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d{1,2})?", value):
-            raise ValueError("unsupported amount format")
-        amount = decimal.Decimal(value.replace(",", ""))
-        if amount > decimal.Decimal("1000000000"):
-            raise ValueError("amount outside prototype limit")
-        return format(amount.quantize(decimal.Decimal("0.01")), ".2f")
+        return receipt_amount(value)
     if field == "invoice_date":
         if re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
             return dt.date.fromisoformat(value).isoformat()

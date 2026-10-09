@@ -1,8 +1,8 @@
 {
   "provider": "baseline",
-  "provider_identity": "bbc307327948560f05830061687e138bde3f509b818bc1c15380e02fae762c4e",
-  "dataset": "authored-synthetic-v1",
-  "documents": 16,
+  "provider_identity": "101bd44862782ac09f6389fe57e18874f82837c30f900864bc1fd2d06bf74a69",
+  "dataset": "authored-synthetic-v2",
+  "documents": 17,
   "field_exact_match": 1.0,
   "decision_accuracy": 1.0,
   "unsafe_validations": 0,
@@ -37,6 +37,10 @@
       "total_fields": 7
     },
     "unsupported_layout": {
+      "correct_fields": 7,
+      "total_fields": 7
+    },
+    "locale_ambiguity": {
       "correct_fields": 7,
       "total_fields": 7
     }
@@ -173,7 +177,7 @@
         "vendor": "Northstar Office Supplies",
         "invoice_date": "2026-10-01",
         "currency": "USD",
-        "subtotal": null,
+        "subtotal": "1200.00",
         "tax": "96.00",
         "total": "1296.00"
       }
@@ -311,6 +315,23 @@
         "currency": null,
         "subtotal": null,
         "tax": null,
+        "total": null
+      }
+    },
+    {
+      "document": "17_ambiguous_separator.txt",
+      "slice": "locale_ambiguity",
+      "correct_fields": 7,
+      "total_fields": 7,
+      "decision_correct": true,
+      "error": null,
+      "actual": {
+        "invoice_id": "INV-2026-041",
+        "vendor": "Northstar Office Supplies",
+        "invoice_date": "2026-10-01",
+        "currency": "USD",
+        "subtotal": "1200.00",
+        "tax": "96.00",
         "total": null
       }
     }

@@ -100,13 +100,13 @@
   {
     "document": "08_european_amount.txt",
     "slice": "formats",
-    "decision": "review",
+    "decision": "validated",
     "fields": {
       "invoice_id": "INV-2026-041",
       "vendor": "Northstar Office Supplies",
       "invoice_date": "2026-10-01",
       "currency": "USD",
-      "subtotal": null,
+      "subtotal": "1200.00",
       "tax": "96.00",
       "total": "1296.00"
     }
@@ -131,7 +131,7 @@
     "decision": "validated",
     "fields": {
       "invoice_id": "INV-2026-041",
-      "vendor": "Caf\u00e9 Equipment Ltd",
+      "vendor": "Café Equipment Ltd",
       "invoice_date": "2026-10-01",
       "currency": "USD",
       "subtotal": "1200.00",
@@ -222,5 +222,19 @@
       "tax": null,
       "total": null
     }
+  },
+  {
+    "document": "17_ambiguous_separator.txt",
+    "slice": "locale_ambiguity",
+    "fields": {
+      "invoice_id": "INV-2026-041",
+      "vendor": "Northstar Office Supplies",
+      "invoice_date": "2026-10-01",
+      "currency": "USD",
+      "subtotal": "1200.00",
+      "tax": "96.00",
+      "total": null
+    },
+    "decision": "review"
   }
 ]

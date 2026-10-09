@@ -57,7 +57,7 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(result["decision"], "review")
 
     def test_unsupported_formats_rejected(self):
-        for value in ("NaN", "1e3", "-1", "1.200,00", "1000000001"):
+        for value in ("NaN", "1e3", "-1", "1,23,4", "1000000001"):
             with self.assertRaises(ValueError):
                 canonical("total", value)
 

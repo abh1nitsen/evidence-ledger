@@ -9,6 +9,7 @@ import tempfile
 import threading
 from decimal import Decimal, InvalidOperation
 from .pipeline import exclusive
+from .core import NUMBER_FORMAT_VERSION
 
 
 def number(value):
@@ -71,6 +72,10 @@ class LocalLedger:
             c.execute("INSERT OR IGNORE INTO ledger_state (id,generation,exported,error) VALUES (1,1,0,NULL)")
             if 'checksum' not in {r[1] for r in c.execute('PRAGMA table_info(ledger_state)')}:
                 c.execute('ALTER TABLE ledger_state ADD COLUMN checksum TEXT')
+            if 'number_format' not in {r[1] for r in c.execute('PRAGMA table_info(ledger_state)')}:
+                c.execute('ALTER TABLE ledger_state ADD COLUMN number_format TEXT')
+            if c.execute('SELECT number_format FROM ledger_state WHERE id=1').fetchone()[0]!=NUMBER_FORMAT_VERSION:
+                c.execute('UPDATE ledger_state SET generation=generation+1,number_format=? WHERE id=1',(NUMBER_FORMAT_VERSION,))
             for table in ('documents','decisions','spending_groups','item_decisions','household_members'):
                 for operation in ('INSERT','UPDATE','DELETE'):
                     c.execute(f'CREATE TRIGGER IF NOT EXISTS ledger_{table}_{operation} AFTER {operation} ON {table} BEGIN UPDATE ledger_state SET generation=generation+1 WHERE id=1; END')

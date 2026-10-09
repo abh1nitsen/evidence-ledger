@@ -11,3 +11,7 @@ Version 0.2 adds four synthetic image fixtures and authored gold in `data/images
 Names and values are fictional, but downstream outputs from your own invoices may contain sensitive data. Runtime reports and databases are ignored by Git. Add only de-identified, reviewed fixtures to the public dataset and manually author gold labels before running the system.
 
 Version 0.4 adds three authored layout-diversity renders in `data/documents/`: a EUR invoice, SGD retail receipt and payment slip. `gold.json` independently specifies all ten proposed fields and expected document roles; a proposed century is not an automatically accepted date. `scripts/generate_document_fixtures.py` regenerates the fixtures. Printed fields and correctly absent fields are scored separately. No private receipt, identity, card detail or real-photo screenshot is included.
+
+## Number-format regression update (v2)
+
+The current authored benchmark contains 17 documents. European `1.200,00` is now supported and its expected subtotal is 1200.00. The new `17_ambiguous_separator.txt` case uses `1.234`, which remains unsupported rather than guessing a decimal or thousands separator. This changes an explicit format policy, not a real-world accuracy estimate.
