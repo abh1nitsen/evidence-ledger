@@ -42,10 +42,10 @@ class Telegram:
         return raw
 
 class Worker:
-    def __init__(self,root,client,provider,store,members,cloud=None):
+    def __init__(self,root,client,provider,store,members,cloud=None,local=None):
         self.root=Path(root);self.root.mkdir(parents=True,exist_ok=True)
         self.db=self.root/'telegram.sqlite';self.client=client;self.provider=provider
-        self.store=store;self.members=members;self.cloud=cloud
+        self.store=store;self.members=members;self.cloud=cloud;self.local=local
         if not isinstance(members,dict) or any(not str(k).isdigit() or not isinstance(v,str) or not 0<len(v.strip())<=80 or any(ord(ch)<32 for ch in v) for k,v in members.items()):raise ValueError('invalid_household_members')
         with self.connect() as c:
             c.executescript('''CREATE TABLE IF NOT EXISTS inbox (
@@ -128,15 +128,23 @@ class Worker:
                 doc=self.store.decide(doc['review']['document_id'],key,'accept' if action=='a' else 'reject',None,revision)
             return chat_id,{'text':self.review_text(doc,source),'reply_markup':self.keyboard(doc,source)},None
         text=message.get('text','')
+        if text=='/retry_excel':
+            if self.local is None:return chat_id,{'text':'Local Excel export is not configured in this worker.'},None
+            self.local.retry()
+            return chat_id,{'text':'Local Excel retry requested. Close the workbook in Excel if it is open. /status shows when the update is ready.'},None
         if text=='/status':
-            if self.cloud is None:return chat_id,{'text':'Shared Google Sheet is not configured. Readings are saved locally for review.'},None
+            local_text=''
+            if self.local is not None:
+                state=self.local.status()['state']
+                local_text='Local Excel: '+({'ready':'up to date (purchase-ledger.xlsx).','updating':'update pending.','retry_needed':'update failed; close the workbook and send /retry_excel. Check the export runtime on the laptop if it still fails.'}[state])+'\n'
+            if self.cloud is None:return chat_id,{'text':local_text+'Shared Google Sheet is not configured. Readings are saved locally for review.'},None
             from .cloud import tables
             fingerprint=hashlib.sha256(json.dumps(tables(self.store),sort_keys=True).encode()).hexdigest()
             with self.connect() as c:
                 previous=c.execute("SELECT value FROM state WHERE key='cloud_hash'").fetchone()
                 status=c.execute("SELECT value FROM state WHERE key='cloud_status'").fetchone()
             state='up to date' if previous and previous[0]==fingerprint else 'waiting to retry' if status and status[0]=='retry_needed' else 'update pending'
-            return chat_id,{'text':'Shared Google Sheet: '+state+'.\nhttps://docs.google.com/spreadsheets/d/'+self.cloud.id},None
+            return chat_id,{'text':local_text+'Shared Google Sheet: '+state+'.\nhttps://docs.google.com/spreadsheets/d/'+self.cloud.id},None
         if text.startswith('/review ') or text.startswith('/edit '):
             parts=text.split(maxsplit=3);source=int(parts[1]);doc=self.lookup(source,user)
             if parts[0]=='/edit':
@@ -173,7 +181,9 @@ class Worker:
         doc['telegram_owner']=user;doc['telegram_receipt']=job
         doc=self.store.register(record['job_key'],doc)
         if doc['member']=='Unassigned':doc=self.store.member(record['job_key'],name,doc['review']['revision'])
-        return chat_id,{'text':'Receipt saved locally as Needs review. Shared-sheet synchronization runs separately.\n'+self.review_text(doc,job),'reply_markup':self.keyboard(doc,job)},record['job_key']
+        destination='Local Excel updates automatically; use /status to check it.' if self.local is not None else 'Readings are saved locally.'
+        if self.cloud is not None:destination+=' Shared-sheet synchronization runs separately.'
+        return chat_id,{'text':'Receipt saved locally as Needs review. '+destination+'\n'+self.review_text(doc,job),'reply_markup':self.keyboard(doc,job)},record['job_key']
     def process(self):
         with self.connect() as c:jobs=c.execute("SELECT id,event,attempts FROM inbox WHERE status='pending' AND next_try<=? ORDER BY id LIMIT 20",(time.time(),)).fetchall()
         for job,raw,attempts in jobs:
@@ -226,11 +236,19 @@ class Worker:
     def loop(self,once=False):
         # One poller per inbox; crashes never acknowledge an update before persistence.
         with exclusive(self.db):
-            while True:
-                with self.connect() as c:offset=int(c.execute("SELECT value FROM state WHERE key='offset'").fetchone()[0])
-                try:self.ingest(self.client.call('getUpdates',offset=offset,timeout=20,allowed_updates=['message','callback_query']))
-                except TransportError:
-                    if once:return
-                    time.sleep(5)
-                self.process();self.sync()
-                if once:return
+            if self.local is not None:self.local.start()
+            try:
+                while True:
+                    with self.connect() as c:offset=int(c.execute("SELECT value FROM state WHERE key='offset'").fetchone()[0])
+                    try:self.ingest(self.client.call('getUpdates',offset=offset,timeout=20,allowed_updates=['message','callback_query']))
+                    except TransportError:
+                        if once:return
+                        time.sleep(5)
+                    self.process();self.sync()
+                    if once:
+                        if self.local is not None:self.local.flush()
+                        return
+            finally:
+                if self.local is not None:
+                    self.local.stop.set()
+                    if self.local.thread is not None:self.local.thread.join(timeout=3)

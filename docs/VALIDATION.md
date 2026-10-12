@@ -1,5 +1,9 @@
 # Validation record
 
+## Version 0.9.2 standalone local Excel fallback
+
+Verified 12 October 2026: **158 automated tests passed**. Three added integration tests verify Telegram intake exporting pending receipts without a browser or Google, local export succeeding during cloud failure, and locked-file recovery through `/retry_excel` with correct `/status` messages. The tests use a stand-in renderer; the existing local Node/artifact-tool export is checked separately on the configured laptop. Google synchronization remains optional and retains its own retry state.
+
 ## Version 0.9.1 setup readiness and new-sheet creation
 
 Verified 12 October 2026: **155 automated tests passed**. Five added checks cover secret-free offline diagnostics, remembering and reusing a created Sheet ID, uncertain delivery and crash guards, missing authorization without network requests, and one create request initializing all three owned tabs without uploading private receipts. OAuth refresh tokens are saved atomically. These creation tests use fake API sessions; a live Sheet has not been created or verified without Google authorization.

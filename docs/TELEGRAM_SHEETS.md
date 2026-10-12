@@ -73,7 +73,7 @@ Generated tabs are app-owned snapshots: edits inside them are overwritten on the
 - The laptop, internet connection and worker must run for processing. Telegram retains undelivered updates for no longer than 24 hours; do not rely on it as indefinite storage while the laptop is off. Once received locally, the durable queue survives longer outages.
 - Rejected/invalid originals are kept in the private intake directory for audit/retry; apply your own retention policy. Photos travel through Telegram and recognized receipt photos are sent to Groq. They are not stored in the public repository or Google Sheet.
 
-The local Excel export remains available through the browser. The Telegram worker updates the shared Google Sheet; local Excel regeneration requires the browser server or `python -m docintel ledger`.
+The Telegram worker also maintains `purchase-ledger.xlsx` beside the configured reviews database, even with no Google Sheet and no browser server running. `/status` reports local Excel readiness as well as cloud status. If Excel is holding the workbook open and blocks replacement, close it and send `/retry_excel`; the last good file stays intact and saved receipts remain available. The export requires the same Node/artifact-tool runtime as the browser's Excel export. Once Google is configured, local Excel and Google Sheets remain projections of the same saved reviews; cloud failures do not stop local export.
 
 ## Reproduce the checks
 

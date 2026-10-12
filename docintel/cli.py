@@ -70,6 +70,8 @@ def main(argv=None):
             if client.call('getWebhookInfo').get('url'):raise ValueError('telegram_webhook_already_configured')
             cloud=Sheets(config['google_token_file'],config['spreadsheet_id']) if config.get('spreadsheet_id') else None
             worker=Worker(config.get('state_dir','runs/telegram'),client,Groq(config.get('model','qwen/qwen3.8-27b')),ReviewStore(config.get('reviews','runs/uploads-reviews.sqlite')),config['members'],cloud)
+            from .ledger import LocalLedger
+            worker.local=LocalLedger(worker.store)
             with worker.connect() as c:
                 previous=c.execute("SELECT value FROM state WHERE key='bot_id'").fetchone()
                 if previous and previous[0]!=str(bot['id']):raise ValueError('inbox_belongs_to_another_bot')

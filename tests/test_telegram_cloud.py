@@ -126,3 +126,33 @@ class IntegrationTests(unittest.TestCase):
         self.worker.sync();self.worker.sync()
         self.assertEqual(self.worker.cloud.calls,2)
         with self.worker.connect() as c:self.assertEqual(c.execute("SELECT value FROM state WHERE key='cloud_status'").fetchone()[0],'ready')
+    def local_export(self):
+        from docintel.ledger import LocalLedger
+        self.exports=[]
+        def render(data,path):self.exports.append(data);path.write_bytes(b'authored workbook stand-in')
+        self.worker.local=LocalLedger(self.store,render)
+    def test_worker_exports_pending_receipt_without_browser_or_google(self):
+        self.local_export();d=self.image()
+        with patch('docintel.telegram.run',return_value={'documents':[{'status':'completed','extraction':d,'job_key':'b'*64}]}):
+            self.worker.ingest([message(photo=[{'file_id':'x'}])]);self.worker.loop(once=True)
+        self.assertEqual(self.worker.local.status()['state'],'ready')
+        self.assertTrue(self.worker.local.path.exists())
+        self.assertEqual(self.exports[-1]['receipts'][0][0],'Member A')
+        self.assertIsNone(self.exports[-1]['receipts'][0][6])
+        self.assertTrue(all(row[11]=='Needs review' for row in self.exports[-1]['items']))
+        self.assertTrue(any('Local Excel updates automatically' in p.get('text','') for _,p in self.client.sent))
+    def test_local_export_survives_cloud_failure(self):
+        self.local_export();self.store.register('b'*64,self.image())
+        class Cloud:
+            def sync(self,store):raise OSError('cloud offline')
+        self.worker.cloud=Cloud();self.worker.loop(once=True)
+        self.assertEqual(self.worker.local.status()['state'],'ready')
+        with self.worker.connect() as c:self.assertEqual(c.execute("SELECT value FROM state WHERE key='cloud_status'").fetchone()[0],'retry_needed')
+    def test_telegram_retry_recovers_locked_excel_and_reports_local_status(self):
+        self.local_export();self.store.register('b'*64,self.image())
+        def locked(data,path):raise PermissionError('authored locked file')
+        renderer=self.worker.local.renderer;self.worker.local.renderer=locked;self.worker.local.flush()
+        _,payload,_=self.worker.handle(message(text='/status'),1);self.assertIn('/retry_excel',payload['text'])
+        self.worker.local.renderer=renderer
+        self.worker.handle(message(text='/retry_excel'),2);self.worker.local.flush()
+        _,payload,_=self.worker.handle(message(text='/status'),3);self.assertIn('Local Excel: up to date',payload['text'])
