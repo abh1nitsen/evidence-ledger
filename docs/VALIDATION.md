@@ -4,6 +4,8 @@
 
 Verified 12 October 2026: **155 automated tests passed**. Five added checks cover secret-free offline diagnostics, remembering and reusing a created Sheet ID, uncertain delivery and crash guards, missing authorization without network requests, and one create request initializing all three owned tabs without uploading private receipts. OAuth refresh tokens are saved atomically. These creation tests use fake API sessions; a live Sheet has not been created or verified without Google authorization.
 
+A separate live Groq check on an authored weekend-plan poster returned `document_type=unknown` and `not_invoice`; the admission gate rejected it with the supported-receipt message. This verifies one real negative reading, not general relevance accuracy. Its temporary image and checkpoint stay outside the public repo, and no personal receipt was sent for this check.
+
 ## Version 0.9 Telegram intake and Google Sheets
 
 Verified 12 October 2026: **150 automated tests passed**, including 11 new integration checks. These use fake Telegram/model/cloud transports and authored data to verify durable offsets, restart deduplication, delayed-reading retries, source duplicates, household ownership, registration crash recovery, stale review buttons, individual field/item acceptance, browser rejection without registration, exclusion of old irrelevant readings from exports, literal Sheet cells, tab ownership and cloud retry. The existing authored benchmark remains 119/119 fields and 17/17 decisions, with zero unsafe validations.
