@@ -2,7 +2,7 @@
 
 ## Version 0.9.2 standalone local Excel fallback
 
-Verified 12 October 2026: **158 automated tests passed**. Three added integration tests verify Telegram intake exporting pending receipts without a browser or Google, local export succeeding during cloud failure, and locked-file recovery through `/retry_excel` with correct `/status` messages. The tests use a stand-in renderer; the existing local Node/artifact-tool export is checked separately on the configured laptop. Google synchronization remains optional and retains its own retry state.
+Verified 12 October 2026: **159 automated tests passed**. Four added tests verify Telegram intake exporting pending receipts without a browser or Google, local export succeeding during cloud failure, locked-file recovery through `/retry_excel` with correct `/status` messages, and setup readiness recognizing the local path independently of Google. The tests use a stand-in renderer; the existing local Node/artifact-tool workbook was verified separately on the configured laptop with Overview, Receipts and Purchases tabs. Google synchronization remains optional and retains its own retry state.
 
 ## Version 0.9.1 setup readiness and new-sheet creation
 

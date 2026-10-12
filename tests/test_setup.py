@@ -19,6 +19,13 @@ class SetupTests(unittest.TestCase):
         self.assertEqual(result['checks']['groq_key_file'],'present')
         self.assertFalse(result['ready_for_receipts']);self.assertFalse(result['account_access_verified'])
         self.assertNotIn('do-not-print-this',json.dumps(result));self.assertNotIn(str(secret),json.dumps(result))
+    def test_local_readiness_does_not_require_google(self):
+        bot=self.root/'bot.txt';bot.write_text('123456:'+('x'*30),encoding='utf-8')
+        groq=self.root/'groq.txt';groq.write_text('authored-stand-in',encoding='utf-8')
+        with patch('docintel.setup.excel_runtime',return_value=(Path('node'),Path('modules'))):
+            result=inspect_setup({**self.data,'telegram_token_file':str(bot),'groq_key_file':str(groq),'members':{'101':'Member A'}})
+        self.assertTrue(result['ready_for_receipts']);self.assertTrue(result['ready_for_local_receipts'])
+        self.assertFalse(result['ready_for_shared_receipts']);self.assertFalse(result['account_access_verified'])
     def test_creation_remembers_id_and_second_call_does_not_create_again(self):
         with patch('docintel.setup.inspect_setup',return_value={'ready_to_create_sheet':True}),patch('docintel.setup.create_sheet',return_value='sample_sheet_id') as create:
             first=create_household(self.config);second=create_household(self.config)

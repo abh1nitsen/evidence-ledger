@@ -5,6 +5,7 @@ from pathlib import Path
 import re
 from .pipeline import atomic_json,exclusive
 from .cloud import create_sheet
+from .ledger import runtime as excel_runtime
 
 def inspect_setup(config):
     checks={}
@@ -24,9 +25,15 @@ def inspect_setup(config):
     checks['spreadsheet']='configured' if re.fullmatch(r'[A-Za-z0-9_-]+',str(config.get('spreadsheet_id',''))) else 'not_created'
     checks['members']='registered' if config.get('members') else 'awaiting_start'
     checks['google_runtime']='installed' if importlib.util.find_spec('google_auth_oauthlib') else 'missing'
+    try:
+        excel_runtime();checks['local_excel_runtime']='installed'
+    except RuntimeError:checks['local_excel_runtime']='missing'
     uncertain=config.get('sheet_creation_state') in ('pending','uncertain')
     if uncertain:checks['spreadsheet']='creation_uncertain_check_drive'
-    return {'checks':checks,'ready_for_receipts':all(checks[k]=='present' for k in ('telegram_token_file','groq_key_file','google_token_file')) and checks['spreadsheet']=='configured' and checks['members']=='registered' and checks['google_runtime']=='installed',
+    intake=all(checks[k]=='present' for k in ('telegram_token_file','groq_key_file')) and checks['members']=='registered'
+    local_ready=intake and checks['local_excel_runtime']=='installed'
+    shared_ready=intake and checks['google_token_file']=='present' and checks['spreadsheet']=='configured' and checks['google_runtime']=='installed'
+    return {'checks':checks,'ready_for_receipts':local_ready or shared_ready,'ready_for_local_receipts':local_ready,'ready_for_shared_receipts':shared_ready,
             'ready_to_create_sheet':checks['google_token_file']=='present' and checks['google_runtime']=='installed' and not uncertain and checks['spreadsheet']=='not_created',
             'account_access_verified':False}
 
