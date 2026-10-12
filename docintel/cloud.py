@@ -1,7 +1,9 @@
 """Atomic snapshots into dedicated Google Sheets tabs; local reviews stay authoritative."""
 import json
+import contextlib
 from pathlib import Path
 from .ledger import projection
+from .pipeline import atomic_json
 
 SCOPE='https://www.googleapis.com/auth/spreadsheets'
 MARKER='Evidence Ledger generated v1 — review in the app; edits here are replaced'
@@ -9,6 +11,31 @@ HEADERS={
  'EL Receipts':['Member','Date','Merchant','Receipt number','Currency','Read total','Confirmed total','Date review','Status','Reason','Pages','Source key','Document ID','Fields needing review'],
  'EL Purchases':['Member','Date','Merchant','Item','Category','Quantity','Unit price','Read amount','Confirmed amount','Currency','Kind','Item review','Receipt status','Printed description','Code','Page','Source key','Document ID'],
  'EL Overview':['Currency','Confirmed spending']}
+
+@contextlib.contextmanager
+def authorized(token_file):
+    from google.oauth2.credentials import Credentials
+    from google.auth.transport.requests import AuthorizedSession,Request
+    token_file=Path(token_file)
+    creds=Credentials.from_authorized_user_file(str(token_file),[SCOPE])
+    if not creds.valid:
+        creds.refresh(Request())
+        atomic_json(token_file,json.loads(creds.to_json()))
+    with AuthorizedSession(creds) as session:yield session
+
+def create_sheet(token_file,title='Household Purchases'):
+    """One create request initializes all generated tabs; callers handle uncertain delivery."""
+    sheets=[]
+    for sid,(name,headers) in enumerate(HEADERS.items(),1):
+        rows=[{'values':[{'userEnteredValue':{'stringValue':str(v)}} for v in row]} for row in [[MARKER],headers]]
+        sheets.append({'properties':{'sheetId':sid,'title':name,'gridProperties':{'rowCount':100,'columnCount':len(headers),'frozenRowCount':2}},'data':[{'rowData':rows}]})
+    with authorized(token_file) as session:
+        response=session.post('https://sheets.googleapis.com/v4/spreadsheets',json={'properties':{'title':title},'sheets':sheets},timeout=60)
+        response.raise_for_status();result=response.json()
+    import re
+    identity=result.get('spreadsheetId','')
+    if not re.fullmatch(r'[A-Za-z0-9_-]+',identity):raise ValueError('invalid_created_sheet')
+    return identity
 
 def tables(store):
     data=projection(store)
@@ -52,14 +79,8 @@ class Sheets:
         if not re.fullmatch(r'[A-Za-z0-9_-]+',spreadsheet_id):raise ValueError('invalid_sheet_id')
         self.token_file=Path(token_file);self.id=spreadsheet_id
     def sync(self,store):
-        from google.oauth2.credentials import Credentials
-        from google.auth.transport.requests import AuthorizedSession,Request
-        creds=Credentials.from_authorized_user_file(str(self.token_file),[SCOPE])
-        if not creds.valid:
-            creds.refresh(Request())
-            self.token_file.write_bytes(creds.to_json().encode())
-        session=AuthorizedSession(creds);url='https://sheets.googleapis.com/v4/spreadsheets/'+self.id
-        with session:
+        url='https://sheets.googleapis.com/v4/spreadsheets/'+self.id
+        with authorized(self.token_file) as session:
             response=session.get(url,timeout=30)
             response.raise_for_status();meta=response.json()
             # Read ownership markers individually; missing tabs require no reads.

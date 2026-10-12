@@ -5,7 +5,7 @@ Version 0.9 adds a standalone Telegram worker. It is built and covered by mocked
 ## What you need
 
 1. Create a dedicated bot using `/newbot` in [@BotFather](https://t.me/BotFather). Save its token in a private `telegram_bot_token.txt` outside the repository. Never commit credentials.
-2. Create a native Google Sheet in your Drive, named Household Purchases, and share it with household members. Copy the ID from `https://docs.google.com/spreadsheets/d/ID/edit`. Excel `.xlsx` in Drive is not a live Sheets API target; download the app's Excel export when needed.
+2. Choose a new native Google Sheet in your Drive, named Household Purchases. The creation command below initializes it after Google authorization. Alternatively use an existing Sheet ID from `https://docs.google.com/spreadsheets/d/ID/edit`. Excel `.xlsx` in Drive is not a live Sheets API target; download the app's Excel export when needed.
 3. For unattended Python access, enable Google Sheets API in your Google Cloud project and create an OAuth **Desktop app** client. Save the downloaded client JSON privately as `google_client_secret.json`. Set up the consent screen/test users following [Google's Python quickstart](https://developers.google.com/workspace/sheets/api/quickstart/python). Testing-mode authorizations may expire and require login again; choose an appropriate consent configuration for long-term use.
 4. Install the optional runtime and authorize interactively:
 
@@ -15,6 +15,19 @@ python -m docintel google-login --client C:/private/.secrets/google_client_secre
 ```
 
 Google's authorization grants the Sheets scope, which can access your spreadsheets. The worker only uses the configured spreadsheet ID. Review Google's consent screen yourself. OAuth tokens and client files remain outside the repo.
+
+## Prepare and create the ledger without Telegram
+
+Copy `config/telegram.example.json` to a private configuration file and set your absolute credential paths. An empty `spreadsheet_id` requests a new sheet. You can check setup offline and create the new sheet after Google sign-in, even before creating your Telegram bot:
+
+```powershell
+python -m docintel household-status --config C:/private/.secrets/telegram.private.json
+python -m docintel google-create --config C:/private/.secrets/telegram.private.json
+```
+
+The status command prints presence/readiness states, never credential values, and does not claim to verify account access. The create command makes Household Purchases with three owned tabs and saves the new ID atomically in your private config. It creates an empty ledger; historical receipt records are populated when the worker synchronizes. Running it again with a saved ID reuses that ID without creating another Sheet.
+
+If the request times out or the process crashes before saving the returned ID, the config records a pending/uncertain creation. A repeat command refuses to create another sheet blindly. Check Drive for Household Purchases; if it exists, copy its ID into `spreadsheet_id` and set `sheet_creation_state` to `created`. Only after verifying that nothing was created should you clear the state and retry. This guard prevents accidental duplicates; it cannot make Google's create request exactly-once. Share the created Sheet with household members using Drive's normal sharing controls.
 
 ## Enrol household members
 

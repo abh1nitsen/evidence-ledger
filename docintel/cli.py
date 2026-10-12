@@ -41,8 +41,19 @@ def main(argv=None):
     telegram=sub.add_parser('telegram',help='Run the household receipt bot and optional Sheets sync')
     telegram.add_argument('--config',required=True,help='Private JSON configuration file')
     telegram.add_argument('--once',action='store_true')
+    setup=sub.add_parser('household-status',help='Check private configuration without making network requests')
+    setup.add_argument('--config',required=True)
+    create=sub.add_parser('google-create',help='Create the household Google Sheet and remember its ID')
+    create.add_argument('--config',required=True)
     args = parser.parse_args(argv)
     try:
+        if args.command=='household-status':
+            from .setup import inspect_setup
+            print(json.dumps(inspect_setup(json.loads(Path(args.config).read_text(encoding='utf-8')))))
+            return 0
+        if args.command=='google-create':
+            from .setup import create_household
+            print(json.dumps(create_household(args.config)));return 0
         if args.command=='google-login':
             from .cloud import authorize
             authorize(args.client,args.token)
