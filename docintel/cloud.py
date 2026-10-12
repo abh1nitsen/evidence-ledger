@@ -6,13 +6,18 @@ from .ledger import projection
 SCOPE='https://www.googleapis.com/auth/spreadsheets'
 MARKER='Evidence Ledger generated v1 — review in the app; edits here are replaced'
 HEADERS={
- 'EL Receipts':['Member','Date','Merchant','Receipt number','Currency','Read total','Confirmed total','Date review','Status','Reason','Pages','Source key','Document ID'],
+ 'EL Receipts':['Member','Date','Merchant','Receipt number','Currency','Read total','Confirmed total','Date review','Status','Reason','Pages','Source key','Document ID','Fields needing review'],
  'EL Purchases':['Member','Date','Merchant','Item','Category','Quantity','Unit price','Read amount','Confirmed amount','Currency','Kind','Item review','Receipt status','Printed description','Code','Page','Source key','Document ID'],
  'EL Overview':['Currency','Confirmed spending']}
 
 def tables(store):
     data=projection(store)
-    return {'EL Receipts':data['receipts'],'EL Purchases':data['items'],
+    receipts=[]
+    for row in data['receipts']:
+        fields=store.get(row[-1])['fields']
+        pending=[key for key,f in fields.items() if not f.get('human_review') and (f.get('required') or f.get('proposal_value') is not None or f.get('candidate') is not None)]
+        receipts.append([*row,', '.join(pending)])
+    return {'EL Receipts':receipts,'EL Purchases':data['items'],
             'EL Overview':[[r['currency'],float(r['total'])] for r in data['totals']]}
 
 def requests_for(metadata, data):

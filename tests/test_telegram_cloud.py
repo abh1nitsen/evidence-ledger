@@ -73,6 +73,8 @@ class IntegrationTests(unittest.TestCase):
         self.worker.handle(callback(f'a:1:0:{index}'),10)
         current=self.store.get('b'*64);self.assertEqual(current['effective_fields']['total'],'18.70')
         self.assertEqual(current['review']['revision'],1)
+        pending=tables(self.store)['EL Receipts'][0][-1].split(', ')
+        self.assertIn('vendor',pending);self.assertNotIn('total',pending)
         self.worker.handle(callback('y:1:1:0'),11)
         current=self.store.get('b'*64);self.assertEqual(current['items'][0]['human_review']['value']['amount'],'12.40')
         self.assertFalse(current['items'][1].get('human_review'))

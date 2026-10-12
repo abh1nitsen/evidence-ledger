@@ -38,7 +38,7 @@ Send one receipt photo, or send it as a JPEG/PNG/WebP file under 8 MB. The worke
 
 Send `/status` to check whether the shared Sheet matches the current local reviews, is waiting for an update, or needs a retry.
 
-- **EL Receipts:** when, who, merchant, proposed total, confirmed total, status and reason.
+- **EL Receipts:** when, who, merchant, proposed total, confirmed total, status, reason and the specific fields still needing review.
 - **EL Purchases:** what was bought, quantity, price, grouping, review state and original printed description.
 - **EL Overview:** confirmed spending, separately by currency.
 
