@@ -1,5 +1,11 @@
 # Validation record
 
+## Version 0.9 Telegram intake and Google Sheets
+
+Verified 12 October 2026: **150 automated tests passed**, including 11 new integration checks. These use fake Telegram/model/cloud transports and authored data to verify durable offsets, restart deduplication, delayed-reading retries, source duplicates, household ownership, registration crash recovery, stale review buttons, individual field/item acceptance, browser rejection without registration, exclusion of old irrelevant readings from exports, literal Sheet cells, tab ownership and cloud retry. The existing authored benchmark remains 119/119 fields and 17/17 decisions, with zero unsafe validations.
+
+The optional Google OAuth runtime installed and imported successfully locally. Actual bot delivery, Google consent, target-sheet permissions and real-model relevance accuracy are **not verified** until private credentials and the target Sheet are configured. Telegram albums currently require the browser's page-chain workflow. Shared generated tabs are snapshots of local reviews; manual edits there are not imported. See [setup and limitations](TELEGRAM_SHEETS.md).
+
 ## Version 0.8.1 receipt number formats
 
 Verified 9 October 2026: **139 automated tests passed**. Decimal-comma amounts, explicit European thousands grouping, trailing currency markers and quantity suffixes are normalized without multiplying printed line costs. Ambiguous/malformed separators and conflicting currency markers are rejected. The v2 authored benchmark has 17 documents: 119/119 field matches, 17/17 decisions, zero unsafe validations. Its European amount expectation now reflects the supported format; a separate ambiguous separator case remains review-only.

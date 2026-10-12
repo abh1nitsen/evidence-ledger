@@ -1,6 +1,7 @@
 """Conservative receipt-level grouping; suggestions are never confirmed automatically."""
 from collections import Counter
 from decimal import Decimal
+from .intake import disposition
 import re
 
 CATEGORIES=("Unclassified","Groceries","Dining","Transport","Shopping","Health & personal care","Travel & accommodation","Utilities","Office & business","Other")
@@ -81,7 +82,7 @@ def _summarize(documents):
 
 
 def summarize(documents):
-    documents=list(documents)
+    documents=[d for d in documents if disposition(d)['status']=='ready']
     real=_summarize([d for d in documents if not is_demo(d)])
     demo=_summarize([d for d in documents if is_demo(d)])
     real['demo']={'receipts':demo['receipts'],'included_receipts':demo['included_receipts'],'totals':demo['totals']}

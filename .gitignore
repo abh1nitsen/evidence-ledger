@@ -1,4 +1,8 @@
 .secrets/
+google_client_secret*.json
+google_token*.json
+telegram_bot_token*.txt
+telegram.private.json
 .env
 .env.*
 !.env.example

@@ -10,6 +10,7 @@ import threading
 from decimal import Decimal, InvalidOperation
 from .pipeline import exclusive
 from .core import NUMBER_FORMAT_VERSION
+from .intake import disposition
 
 
 def number(value):
@@ -23,9 +24,11 @@ def projection(store):
     with store.connect() as c:
         ids=[r[0] for r in c.execute('SELECT id FROM documents ORDER BY rowid DESC')]
     documents={identity:store.get(identity) for identity in ids}
+    documents={identity:doc for identity,doc in documents.items() if disposition(doc)['status']=='ready'}
     summary=store.spending_summary()
     receipts=[];items=[]
     for row in summary['receipts']:
+        if row['document_id'] not in documents:continue
         doc=documents[row['document_id']];fields=doc['fields'];values=doc['effective_fields']
         def candidate(key):
             f=fields.get(key,{})
@@ -74,8 +77,8 @@ class LocalLedger:
                 c.execute('ALTER TABLE ledger_state ADD COLUMN checksum TEXT')
             if 'number_format' not in {r[1] for r in c.execute('PRAGMA table_info(ledger_state)')}:
                 c.execute('ALTER TABLE ledger_state ADD COLUMN number_format TEXT')
-            if c.execute('SELECT number_format FROM ledger_state WHERE id=1').fetchone()[0]!=NUMBER_FORMAT_VERSION:
-                c.execute('UPDATE ledger_state SET generation=generation+1,number_format=? WHERE id=1',(NUMBER_FORMAT_VERSION,))
+            if c.execute('SELECT number_format FROM ledger_state WHERE id=1').fetchone()[0]!=NUMBER_FORMAT_VERSION+':intake-v1':
+                c.execute('UPDATE ledger_state SET generation=generation+1,number_format=? WHERE id=1',(NUMBER_FORMAT_VERSION+':intake-v1',))
             for table in ('documents','decisions','spending_groups','item_decisions','household_members'):
                 for operation in ('INSERT','UPDATE','DELETE'):
                     c.execute(f'CREATE TRIGGER IF NOT EXISTS ledger_{table}_{operation} AFTER {operation} ON {table} BEGIN UPDATE ledger_state SET generation=generation+1 WHERE id=1; END')

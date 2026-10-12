@@ -21,6 +21,7 @@ from .pipeline import run
 from .providers import Groq, ProviderError
 from .vision import MAX_IMAGE_BYTES
 from .ledger import LocalLedger
+from .intake import disposition
 
 
 def handler(report, image_provider=None, image_db=None, review_threshold=0.85):
@@ -46,6 +47,10 @@ def handler(report, image_provider=None, image_db=None, review_threshold=0.85):
             self.wfile.write(content if isinstance(content, bytes) else content.encode())
 
         def send_result(self, result, identity=None):
+            admission=disposition(result)
+            if admission['status']!='ready':
+                self.send(200,json.dumps({'intake':admission}))
+                return
             if identity:
                 checkpoint=result.get("checkpoint")
                 result=reviews.register(identity,result)

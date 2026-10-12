@@ -35,8 +35,35 @@ def main(argv=None):
     serve.add_argument("--image-db", default="runs/uploads.sqlite")
     ledger=sub.add_parser('ledger',help='Rebuild the local household Excel from saved reviews')
     ledger.add_argument('--reviews',default='runs/uploads-reviews.sqlite')
+    login=sub.add_parser('google-login',help='Authorize the standalone Google Sheets worker')
+    login.add_argument('--client',required=True)
+    login.add_argument('--token',required=True)
+    telegram=sub.add_parser('telegram',help='Run the household receipt bot and optional Sheets sync')
+    telegram.add_argument('--config',required=True,help='Private JSON configuration file')
+    telegram.add_argument('--once',action='store_true')
     args = parser.parse_args(argv)
     try:
+        if args.command=='google-login':
+            from .cloud import authorize
+            authorize(args.client,args.token)
+            print('Google authorization saved locally.');return 0
+        if args.command=='telegram':
+            from .telegram import Telegram,Worker
+            from .reviews import ReviewStore
+            from .cloud import Sheets
+            config=json.loads(Path(args.config).read_text(encoding='utf-8'))
+            import os
+            os.environ['GROQ_API_KEY']=Path(config['groq_key_file']).read_text(encoding='utf-8').strip()
+            client=Telegram(Path(config['telegram_token_file']).read_text(encoding='utf-8').strip())
+            bot=client.call('getMe')
+            if client.call('getWebhookInfo').get('url'):raise ValueError('telegram_webhook_already_configured')
+            cloud=Sheets(config['google_token_file'],config['spreadsheet_id']) if config.get('spreadsheet_id') else None
+            worker=Worker(config.get('state_dir','runs/telegram'),client,Groq(config.get('model','qwen/qwen3.8-27b')),ReviewStore(config.get('reviews','runs/uploads-reviews.sqlite')),config['members'],cloud)
+            with worker.connect() as c:
+                previous=c.execute("SELECT value FROM state WHERE key='bot_id'").fetchone()
+                if previous and previous[0]!=str(bot['id']):raise ValueError('inbox_belongs_to_another_bot')
+                c.execute("INSERT OR REPLACE INTO state VALUES ('bot_id',?)",(str(bot['id']),))
+            worker.loop(args.once);return 0
         if args.command=='ledger':
             from .reviews import ReviewStore
             from .ledger import LocalLedger
@@ -70,7 +97,7 @@ def main(argv=None):
         atomic_json(args.output, report)
         print(json.dumps({key: report[key] for key in ("documents", "field_exact_match", "decision_accuracy", "unsafe_validations", "extraction_failures")}))
         return 0 if (report["field_exact_match"] == 1 and report["decision_accuracy"] == 1 and not report["extraction_failures"]) else 2
-    except (ValueError, OSError, ProviderError, RuntimeError):
+    except (ValueError, OSError, ProviderError, RuntimeError,ImportError,KeyError):
         # Do not print exception strings: filesystem paths or provider payloads may be sensitive.
         print("Operation failed. Check input, configuration, permissions, and checkpoint ownership.", file=sys.stderr)
         return 1

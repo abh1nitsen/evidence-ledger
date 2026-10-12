@@ -1,0 +1,10 @@
+{
+  "telegram_token_file": "C:/private/.secrets/telegram_bot_token.txt",
+  "groq_key_file": "C:/private/.secrets/groq_key_2.txt",
+  "google_token_file": "C:/private/.secrets/google_token.json",
+  "spreadsheet_id": "",
+  "state_dir": "runs/telegram",
+  "reviews": "runs/uploads-reviews.sqlite",
+  "model": "qwen/qwen3.8-27b",
+  "members": {}
+}
